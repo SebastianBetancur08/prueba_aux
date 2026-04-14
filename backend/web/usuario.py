@@ -1,14 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import select, Session
-from models import Usuario, UsuarioPublico, CrearUsuario, ModificarUsuario
-from db import  get_session
+from backend.models import Usuario, UsuarioPublico, CrearUsuario, ModificarUsuario
+from backend.db import  get_session
 
 router = APIRouter(prefix="/usuario")
 
 
 @router.post("/", response_model = list[UsuarioPublico])
-def crear_usuario(*,
+def crear_usuarios(*,
      session: Session = Depends(get_session), 
      usuarios: list[CrearUsuario]
      ):
@@ -27,7 +27,7 @@ def crear_usuario(*,
     for usuario in db_usuarios:
         session.refresh(usuario)
 
-    return usuarios
+    return db_usuarios
 
 
 @router.get("/", response_model = list[UsuarioPublico])

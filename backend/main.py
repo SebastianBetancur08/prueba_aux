@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager 
-from db import create_db_and_tables
+from backend.db import create_db_and_tables
 from fastapi import FastAPI, Depends
-from web import usuario, producto, compra
+from backend.web import usuario, producto, compra
 
 
 @asynccontextmanager
@@ -15,3 +15,4 @@ app = FastAPI(lifespan = lifespan)
 
 app.include_router(usuario.router)
 app.include_router(producto.router)
+app.include_router(compra.router)

@@ -33,4 +33,4 @@ sqlmodel==0.0.38          # ← ancla principal (Apr 2, 2026)
 pytest==9.0.3             # última estable (Apr 7, 2026)
 pytest-mock               # sin pin; compatible con pytest 9.x
 
-# Python 3.12.3 para el entorno
+# Python 3.12.3 para el entorno usando python3.12 al crear el entorno

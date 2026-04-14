@@ -1,15 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import select, Session
-from models import Producto, CrearProducto, ModificarProducto
-from db import  get_session
+from backend.models import Producto, CrearProducto, ModificarProducto
+from backend.db import  get_session
 
 
 router = APIRouter(prefix="/producto")
 
 
 @router.post("/", response_model = list[Producto])
-def crear_producto(*,
+def crear_productos(*,
      session: Session = Depends(get_session), 
      productos: list[CrearProducto]
      ):
@@ -54,7 +54,7 @@ def buscar_productos(*,
         producto = session.get(Producto, producto_id)
 
         if not producto:
-            raise HTTPException(status_code = 404, detail = "Producto {producto_id} not found")
+            raise HTTPException(status_code = 404, detail = f"Producto {producto_id} not found")
         productos.append(producto)
 
     return productos
