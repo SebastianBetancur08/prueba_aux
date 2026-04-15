@@ -61,7 +61,7 @@ def buscar_usuarios(*,
     return usuarios
 
 
-@router.get("/{usuario_id}", reponse_model = list[CompraPublica] )
+@router.get("/{usuario_id}", response_model = list[CompraPublica] )
 def obtener_compras_usuario(*,
     session: Session = Depends(get_session),
     usuario_id: int
