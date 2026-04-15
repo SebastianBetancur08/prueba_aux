@@ -48,11 +48,13 @@ def buscar_productos(*,
     session: Session = Depends(get_session),
     productos_id: list[int] = Query(default=[]) 
     ):
-
+    
+    # Buscar productos
     productos=[]
     for producto_id in productos_id:
         producto = session.get(Producto, producto_id)
-
+        
+        # Validar producto
         if not producto:
             raise HTTPException(status_code = 404, detail = f"Producto {producto_id} not found")
         productos.append(producto)
@@ -67,10 +69,13 @@ def modificar_producto(
     producto_id: int,
     producto: ModificarProducto
 ):
+    
+    # Validar producto
     db_producto = session.get(Producto, producto_id)
     if not db_producto:
         raise HTTPException(status_code = 404, detail = "Producto no encontrado")
-
+    
+    #  # Añadir cambios, guardar y refrescar
     producto_data = producto.model_dump(exclude_unset=True)
     db_producto.sqlmodel_update(producto_data)
     session.add(db_producto)
@@ -85,13 +90,14 @@ def eliminar_producto(*,
     session: Session = Depends(get_session), 
     producto_id: int
     ):
-
+     
+    # Validar producto
     producto = session.get(Producto, producto_id)
     if not producto:
         raise HTTPException(status_code = 404, detail = "Producto not found")
     
+    # Eliminar producto y guardar cambios
     session.delete(producto)
     session.commit()
 
     return {"ok": True}
-

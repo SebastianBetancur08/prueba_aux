@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import select, Session
-from backend.models import Usuario, UsuarioPublico, CrearUsuario, ModificarUsuario
+from backend.models import Usuario, UsuarioPublico, CrearUsuario, ModificarUsuario, Compra, CompraPublica
 from backend.db import  get_session
 
 router = APIRouter(prefix="/usuario")
@@ -43,19 +43,47 @@ def leer_usuarios(*,
 
 
 @router.get("/buscar_usuarios/", response_model = list[UsuarioPublico])
-def buscar_usuarios(
-    *,
+def buscar_usuarios(*,
     session: Session = Depends(get_session),
     usuarios_id: list[int] = Query(default=[])
 ):
+    
+    # Buscar usuarios
     usuarios = []
     for usuario_id in usuarios_id:
         usuario = session.get(Usuario, usuario_id)
+
+        # Validar usuario
         if not usuario:
             raise HTTPException(status_code = 404, detail = f"Usuario {usuario_id} not found")
         usuarios.append(usuario)
 
     return usuarios
+
+
+@router.get("/{usuario_id}", reponse_model = list[CompraPublica] )
+def obtener_compras_usuario(*,
+    session: Session = Depends(get_session),
+    usuario_id: int
+    ):
+
+    # Validar usuario
+    usuario = session.get(Usuario.compra)
+    if not usuario:
+        raise HTTPException(status_code = 404, detail = f"Usuario {usuario_id} not found")
+    
+    # Encontrar compras
+    compras=[]
+    for compra in usuario.compras:
+        compras.append(CompraPublica(
+            total_productos = compra.total_productos,
+            usuario_id = compra.usuario_id,
+            id_compra = compra.id_compra,
+            usuario = compra.usuario,
+            productos = compra.producto_link
+        ))
+
+    return compras
 
 
 @router.patch("/{usuario_id}", response_model = UsuarioPublico)
@@ -64,10 +92,13 @@ def modificar_usuario( *,
     usuario_id: int,
     usuario: ModificarUsuario
 ):
+    
+    # Validar usuario
     db_usuario = session.get(Usuario, usuario_id)
     if not db_usuario:
         raise HTTPException(status_code = 404, detail = "Usuario no encontrado")
-
+ 
+    # Añadir cambios, guardar y refrescar
     usuario_data = usuario.model_dump(exclude_unset=True)
     db_usuario.sqlmodel_update(usuario_data)
     session.add(db_usuario)
@@ -82,11 +113,13 @@ def eliminar_usuario(*,
     session: Session = Depends(get_session), 
     usuario_id: int
     ):
-
+    
+    # Validar usuario
     usuario=session.get(Usuario, usuario_id)
     if not usuario:
         raise HTTPException(status_code = 404, detail = "Usuario not found")
     
+    # Eliminar usuario y guardar cambios
     session.delete(usuario)
     session.commit()
 

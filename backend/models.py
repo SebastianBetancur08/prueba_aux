@@ -14,7 +14,7 @@ class UsuarioBase(SQLModel):
 class Usuario(UsuarioBase, table = True):
     id: int | None = Field(default = None, primary_key = True)
     contraseña: str
-    compras: list["Compra"] = Relationship(back_populates = "usuario")
+    compras: list["Compra"] = Relationship(back_populates = "usuario", cascade_delete = True)
 
 
 class UsuarioPublico(UsuarioBase):
@@ -23,10 +23,6 @@ class UsuarioPublico(UsuarioBase):
 
 class CrearUsuario(UsuarioBase):
     contraseña: str
-    id: int
-
-
-class LeerUsuario(UsuarioBase):
     id: int
 
 
@@ -67,15 +63,11 @@ class ProductoBase(SQLModel):
 
 class Producto(ProductoBase, table = True):
     id: int | None = Field(default = None, primary_key = True)
-    compra_link: list[CompraProducto] = Relationship(back_populates = "producto")
+    compra_link: list[CompraProducto] = Relationship(back_populates = "producto", cascade_delete = True)
 
 
 class CrearProducto(ProductoBase):
     pass
-
-
-class LeerProducto(ProductoBase):
-    id: int
 
 
 class ModificarProducto(SQLModel):
@@ -97,7 +89,7 @@ class CompraBase(SQLModel):
 class Compra(CompraBase, table = True):
     id_compra: int | None = Field(default = None, primary_key = True)
     usuario: "Usuario" = Relationship(back_populates = "compras")
-    producto_link: list[CompraProducto] = Relationship(back_populates = "compra")
+    producto_link: list[CompraProducto] = Relationship(back_populates = "compra", cascade_delete = True)
 
 
 class CompraPublica(CompraBase):
@@ -117,5 +109,5 @@ class CrearCompra(SQLModel):
 
 
 class ModificarCompra(SQLModel):
-    usuario_id: int | None =None
+    usuario_id: int | None = None
     productos: list[CompraItem] | None = None
