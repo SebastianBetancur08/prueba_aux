@@ -68,7 +68,7 @@ def obtener_compras_usuario(*,
     ):
 
     # Validar usuario
-    usuario = session.get(Usuario.compra)
+    usuario = session.get(Usuario, usuario_id)
     if not usuario:
         raise HTTPException(status_code = 404, detail = f"Usuario {usuario_id} not found")
     

@@ -27,6 +27,7 @@ class CrearUsuario(UsuarioBase):
 
 
 class ModificarUsuario(SQLModel):
+    id: int | None = None
     nombre: str | None = None
     email: str | None = None
     contraseña: str | None = None
@@ -56,7 +57,7 @@ class CompraProductoPublica(SQLModel):
 
 
 class ProductoBase(SQLModel):
-    nombre: str = Field(index = True)
+    nombre: str = Field(index = True, unique = True)
     precio: Decimal = Field(default = 0, max_digits = 10, decimal_places = 3)
     url_de_imagen: str | None = Field(default=None)
 

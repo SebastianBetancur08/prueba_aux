@@ -6,64 +6,68 @@ from backend.db import  get_session
 
 router = APIRouter(prefix="/compra")
 
-@router.post("/", response_model = CompraPublica)
-def crear_compra(*,
+@router.post("/", response_model=CompraPublica)
+def crear_compra(
+    *,
     session: Session = Depends(get_session),
     compra_data: CrearCompra
-    ):
+):
+    
+    # Validar si hay almenos una compra
+    if not compra_data.productos:
+        raise HTTPException(400, "La compra debe tener al menos un producto")
 
-    # Validar usuario
+    # validar usuario
     usuario = session.get(Usuario, compra_data.usuario_id)
     if not usuario:
-        raise HTTPException(status_code = 404, detail = f"Usuario {compra_data.usuario_id} no existe")
-    
-    # validar productos
+        raise HTTPException(404, f"Usuario {compra_data.usuario_id} no existe")
+
+    # obtener ids productos
+    productos_ids = [item.producto_id for item in compra_data.productos]
+
+    # validar productos en una sola consulta
+    productos = session.exec(
+        select(Producto).where(Producto.id.in_(productos_ids))
+    ).all()
+
+    if len(productos_ids) != len(set(productos_ids)):
+        raise HTTPException(status_code = 400, detail = "Productos repetidos en la compra")
+
+    if len(productos) != len(productos_ids):
+        raise HTTPException(status_code = 404, detail =  "Uno o más productos no existen")
+
+    # crear compra
+    db_compra = Compra(
+        usuario_id=compra_data.usuario_id,
+        total_productos=sum(item.cantidad for item in compra_data.productos)
+    )
+
+    session.add(db_compra)
+    session.flush()
+
+    # crear links
     for item in compra_data.productos:
-        producto = session.get(Producto, item.producto_id)
-        if not producto:
-            raise HTTPException(status_code = 404, detail = f"Producto {item.producto_id} no existe")
+        link = CompraProducto(
+            compra_id=db_compra.id_compra,
+            producto_id=item.producto_id,
+            cantidad=item.cantidad
+        )
+        session.add(link)
 
-    try:
-
-        # crear compra
-        db_compra = Compra(
-            usuario_id = compra_data.usuario_id,
-            total_productos=sum(item.cantidad for item in compra_data.productos)
-            )
-
-        session.add(db_compra)
-        session.flush()
-
-        # crear tabla intermedia
-        for item in compra_data.productos:
-            link = CompraProducto(
-                compra_id=db_compra.id_compra,
-                producto_id=item.producto_id,
-                cantidad=item.cantidad
-                )
-            session.add(link)
-
-    except IntegrityError:
-        session.rollback()
-        raise HTTPException(status_code=400, detail="Error creando la compra")
-    
-    # Guardar y refrescar ANTES de construir CompraPublica
     session.commit()
     session.refresh(db_compra)
 
     # crear compra publica
-    db_compra=CompraPublica(
+    compra_final=CompraPublica(
             id_compra = db_compra.id_compra,
             usuario_id = db_compra.usuario_id,
             total_productos = db_compra.total_productos,
             usuario = db_compra.usuario,
             productos = db_compra.producto_link
             )
-    # Guardar compra y refrescar compra
-    session.commit()
-    session.refresh(db_compra)
 
-    return db_compra
+
+    return compra_final
 
 
 @router.get("/{id_compra}", response_model = CompraPublica)
@@ -77,7 +81,7 @@ def obtener_compra(*,
         raise HTTPException(status_code = 404, detail = f"Compra {id_compra} not found")
     
     # Crear compra publica
-    db_compra=CompraPublica(
+    compra_final=CompraPublica(
             id_compra = db_compra.id_compra,
             usuario_id = db_compra.usuario_id,
             total_productos = db_compra.total_productos,
@@ -85,7 +89,7 @@ def obtener_compra(*,
             productos = db_compra.producto_link
             )
     
-    return db_compra
+    return compra_final
 
 
 @router.patch("/{id_compra}", response_model = CompraPublica)
@@ -161,7 +165,7 @@ def eliminar_compra(*,
         raise HTTPException(status_code = 404, detail = "Compra {id_compra} no existe")
 
     # Eliminar compra y guardar cambios
-    session.delete(Compra, id_compra)
+    session.delete(db_compra)
     session.commit()
 
     return {"Ok": True}
