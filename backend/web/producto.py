@@ -70,6 +70,11 @@ def modificar_producto(
     producto: ModificarProducto
 ):
     
+    # Validar si se ingresan cambios
+    cambios = producto.model_dump(exclude_unset=True)
+    if not cambios:
+        raise HTTPException(status_code=422, detail="Ingresar al menos un cambio")
+    
     # Validar producto
     db_producto = session.get(Producto, producto_id)
     if not db_producto:

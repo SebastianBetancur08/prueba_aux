@@ -77,7 +77,6 @@ def obtener_compras_usuario(*,
     for compra in usuario.compras:
         compras.append(CompraPublica(
             total_productos = compra.total_productos,
-            usuario_id = compra.usuario_id,
             id_compra = compra.id_compra,
             usuario = compra.usuario,
             productos = compra.producto_link
@@ -93,6 +92,11 @@ def modificar_usuario( *,
     usuario: ModificarUsuario
 ):
     
+    # Validar si se ingresan cambios
+    cambios = usuario.model_dump(exclude_unset=True)
+    if not cambios:
+        raise HTTPException(status_code=422, detail="Ingresar al menos un cambio")
+
     # Validar usuario
     db_usuario = session.get(Usuario, usuario_id)
     if not db_usuario:

@@ -6,7 +6,7 @@ from backend.db import  get_session
 
 router = APIRouter(prefix="/compra")
 
-@router.post("/", response_model=CompraPublica)
+@router.post("/", response_model = CompraPublica)
 def crear_compra(
     *,
     session: Session = Depends(get_session),
@@ -15,7 +15,7 @@ def crear_compra(
     
     # Validar si hay almenos una compra
     if not compra_data.productos:
-        raise HTTPException(400, "La compra debe tener al menos un producto")
+        raise HTTPException(status_code = 400, detail = "La compra debe tener al menos un producto")
 
     # validar usuario
     usuario = session.get(Usuario, compra_data.usuario_id)
@@ -38,8 +38,8 @@ def crear_compra(
 
     # crear compra
     db_compra = Compra(
-        usuario_id=compra_data.usuario_id,
-        total_productos=sum(item.cantidad for item in compra_data.productos)
+        usuario_id = compra_data.usuario_id,
+        total_productos = sum(item.cantidad for item in compra_data.productos)
     )
 
     session.add(db_compra)
@@ -48,9 +48,9 @@ def crear_compra(
     # crear links
     for item in compra_data.productos:
         link = CompraProducto(
-            compra_id=db_compra.id_compra,
-            producto_id=item.producto_id,
-            cantidad=item.cantidad
+            compra_id = db_compra.id_compra,
+            producto_id = item.producto_id,
+            cantidad = item.cantidad
         )
         session.add(link)
 
@@ -58,14 +58,12 @@ def crear_compra(
     session.refresh(db_compra)
 
     # crear compra publica
-    compra_final=CompraPublica(
-            id_compra = db_compra.id_compra,
-            usuario_id = db_compra.usuario_id,
-            total_productos = db_compra.total_productos,
-            usuario = db_compra.usuario,
-            productos = db_compra.producto_link
-            )
-
+    compra_final = CompraPublica(
+        id_compra = db_compra.id_compra,
+        total_productos = db_compra.total_productos,
+        usuario = db_compra.usuario,
+        productos = db_compra.producto_link
+    )
 
     return compra_final
 
@@ -83,7 +81,6 @@ def obtener_compra(*,
     # Crear compra publica
     compra_final=CompraPublica(
             id_compra = db_compra.id_compra,
-            usuario_id = db_compra.usuario_id,
             total_productos = db_compra.total_productos,
             usuario = db_compra.usuario,
             productos = db_compra.producto_link
@@ -99,28 +96,41 @@ def modificar_compra(*,
     compra_data: ModificarCompra,
     ):
     
+    # Validar si se ingresan cambios
+    cambios = compra_data.model_dump(exclude_unset=True)
+    if not cambios:
+        raise HTTPException(status_code=422, detail="Ingresar al menos un cambio")
+
     # Validad si existe la compra
     db_compra = session.get(Compra, id_compra)
     if not db_compra:
         raise HTTPException(status_code = 404, detail = f"Compra {id_compra} no existe")
     
-    # Actualizar usuario_id en compra si se proporociciona
+    # Actualizar usuario_id en compra si se proporocioiona
     if compra_data.usuario_id  is not None:
 
-        # Validar si existe el usuario
+        # Validar si existe el usuario proporcionado
         usuario = session.get(Usuario, compra_data.usuario_id )
         if not usuario:
-            raise HTTPException(status_code=404, detail=f"Usuario {compra_data.usuario_id} no existe")
+            raise HTTPException(status_code = 404, detail=f"Usuario {compra_data.usuario_id} no existe")
         db_compra.usuario_id = compra_data.usuario_id
     
     # Actulizar productos en compra si se proporciona
     if compra_data.productos is not None:
 
-        # Validar si existe cada producto existe antes de modificar
-        for item in compra_data.productos:
-            producto = session.get(Producto, item.producto_id)
-            if not producto: 
-                raise HTTPException(status_code=404, detail=f"Producto {item.producto_id} no existe")
+        # obtener ids productos
+        productos_ids = [item.producto_id for item in compra_data.productos]
+
+        # validar productos en una sola consulta
+        productos = session.exec(
+            select(Producto).where(Producto.id.in_(productos_ids))
+        ).all()
+
+        if len(productos_ids) != len(set(productos_ids)):
+            raise HTTPException(status_code = 400, detail = "Productos repetidos en la compra")
+
+        if len(productos) != len(productos_ids):
+            raise HTTPException(status_code = 404, detail =  "Uno o más productos no existen")
         
         # Eliminar links anteriores
         session.exec(delete(CompraProducto).where(CompraProducto.compra_id == id_compra))
@@ -142,15 +152,14 @@ def modificar_compra(*,
     session.commit()
     session.refresh(db_compra)
 
-    db_compra = CompraPublica(
+    compra_final = CompraPublica(
             id_compra = db_compra.id_compra,
-            usuario_id = db_compra.usuario_id,
             total_productos = db_compra.total_productos,
             usuario = db_compra.usuario,
             productos = db_compra.producto_link
             )
 
-    return db_compra
+    return compra_final
 
 
 @router.delete("/{id_compra}")
@@ -162,7 +171,7 @@ def eliminar_compra(*,
     #Validar si existe la compra
     db_compra=session.get(Compra, id_compra)
     if not db_compra:
-        raise HTTPException(status_code = 404, detail = "Compra {id_compra} no existe")
+        raise HTTPException(status_code = 404, detail = f"Compra {id_compra} no existe")
 
     # Eliminar compra y guardar cambios
     session.delete(db_compra)

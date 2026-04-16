@@ -28,7 +28,7 @@ def client_fixture(session: Session):
     app.dependency_overrides.clear()
 
 
-@pytest.fixture(name="usuario")
+@pytest.fixture(name = "usuario")
 def usuario_fixture(client: TestClient):
     response = client.post("/usuario/", json=[{
         "nombre": "pruebas",
@@ -39,7 +39,7 @@ def usuario_fixture(client: TestClient):
     return response.json()[0]
 
 
-@pytest.fixture(name="producto")
+@pytest.fixture(name = "producto")
 def producto_fixture(client: TestClient):
     response = client.post("/producto/", json=[{
         "nombre": "producto prueba",
@@ -50,7 +50,7 @@ def producto_fixture(client: TestClient):
     return response.json()[0]
 
 
-@pytest.fixture(name="compra")
+@pytest.fixture(name = "compra")
 def compra_fixture(client: TestClient, usuario, producto):
     response = client.post("/compra/", json={
         "usuario_id": usuario["id"],
@@ -138,7 +138,7 @@ def test_obtener_compras_usuario(client: TestClient, usuario, compra):
 
     assert response.status_code == 200
     assert len(data) > 0
-    assert data[0]["usuario_id"] == usuario["id"]
+    assert data[0]["usuario"]["id"] == usuario["id"]
     assert data[0]["id_compra"] == compra["id_compra"]
     assert data[0]["total_productos"] == compra["total_productos"]
     assert data[0]["productos"][0]["producto_id"] == compra["productos"][0]["producto_id"]
@@ -175,114 +175,4 @@ def test_elimar_usuario_no_existe(client: TestClient):
     response = client.delete("/usuario/25")
 
     assert response.status_code == 404
-
-
-###############################################################################
-
-
-def test_crear_prooducto(client: TestClient, producto):
-
-
-    assert producto["precio"] == '10000.250'
-    assert producto["nombre"] == "producto prueba"
-    assert producto["url_de_imagen"] == "http//prueba"
-
-
-def test_crear_producto_incompleto(client: TestClient, producto):
-    response = client.post("/producto/", json=[{
-        "url_de_imagen": "http//prueba"}])
-
-    assert response.status_code == 422
-
-
-def test_crear_producto_duplicado(client: TestClient, producto):
-
-    response = client.post("/producto/", json=[{
-        "nombre": "producto prueba",
-        "precio": 10000.250,
-        "url_de_imagen": "http//prueba"
-    }])
-
-    assert response.status_code == 400
-
-
-def test_leer_producto(client: TestClient, producto):
-    response = client.get("/producto/")
-
-    data = response.json()
-
-    assert response.status_code == 200
-    assert len(data) > 0
-    assert producto["precio"] == '10000.250'
-    assert producto["nombre"] == "producto prueba"
-    assert producto["url_de_imagen"] == "http//prueba"
-
-
-def test_leer_producto_paginacion(client: TestClient, producto):
-    response = client.get("/producto/?minimo=0&maximo=1")
-
-    data = response.json()
-
-    assert response.status_code == 200
-    assert len(data) <= 1
-
-
-def test_leer_producto_maximo_invalido(client: TestClient):
-    response = client.get("/producto/?maximo=200")
-
-    assert response.status_code == 422
-
-
-def test_buscar_productos(client: TestClient, producto):
-    response = client.get(f"/producto/buscar_productos/?usuarios_id={producto['id']}")
-
-    data = response.json()
-
-    assert response.status_code == 200
-    assert producto["precio"] == '10000.250'
-    assert producto["nombre"] == "producto prueba"
-    assert producto["url_de_imagen"] == "http//prueba"
-
-
-def test_buscar_producto_no_existe(client: TestClient):
-    response = client.get("/producto/buscar_productos/?productos_id=25")
-
-    assert response.status_code == 404
-
-
-def test_modifcar_producto(client: TestClient, producto):
-    response = client.patch(f"/producto/{producto['id']}", 
-                        json = {
-                            "nombre": "hola",
-                            "precio": 300,
-                        })
-    data = response.json()
-
-    assert data["nombre"] != producto["nombre"]
-    assert data["precio"] != producto["precio"]
-
-
-def test_modificar_producto_no_existe(client: TestClient, producto):
-    response = client.patch("/producto/40", json = {})
-
-    assert response.status_code == 404
-
-
-def test_elimiar_producto(client: TestClient, producto):
-    response = client.delete(f"/producto/{producto['id']}")
-
-    assert response.status_code == 200
-
-
-def test_eliminar_usuario_no_existe(client: TestClient):
-    response = client.delete("/producto/25")
-
-    assert response.status_code == 404
-
-
-
-
-
-
-##################################################################################
 

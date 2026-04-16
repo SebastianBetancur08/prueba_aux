@@ -6,24 +6,27 @@ from decimal import Decimal
 #--------USUARIO--------#
 #########################
 
-class UsuarioBase(SQLModel):
+
+
+class Usuario(SQLModel, table = True):
+    id: int | None = Field(default = None, primary_key = True)
     nombre: str = Field(index = True)
     email: str | None = Field(default = None)
-
-
-class Usuario(UsuarioBase, table = True):
-    id: int | None = Field(default = None, primary_key = True)
     contraseña: str
     compras: list["Compra"] = Relationship(back_populates = "usuario", cascade_delete = True)
 
 
-class UsuarioPublico(UsuarioBase):
+class UsuarioPublico(SQLModel):
     id: int
+    nombre: str
+    email: str | None = None
 
 
-class CrearUsuario(UsuarioBase):
+class CrearUsuario(SQLModel):
+    id: int
+    nombre: str
+    email: str | None = None
     contraseña: str
-    id: int
 
 
 class ModificarUsuario(SQLModel):
@@ -56,19 +59,18 @@ class CompraProductoPublica(SQLModel):
 ##########################
 
 
-class ProductoBase(SQLModel):
+class Producto(SQLModel, table = True):
+    id: int | None = Field(default = None, primary_key = True)
     nombre: str = Field(index = True, unique = True)
     precio: Decimal = Field(default = 0, max_digits = 10, decimal_places = 3)
     url_de_imagen: str | None = Field(default=None)
-
-
-class Producto(ProductoBase, table = True):
-    id: int | None = Field(default = None, primary_key = True)
     compra_link: list[CompraProducto] = Relationship(back_populates = "producto", cascade_delete = True)
 
 
-class CrearProducto(ProductoBase):
-    pass
+class CrearProducto(SQLModel):
+    nombre: str 
+    precio: Decimal 
+    url_de_imagen: str | None = None
 
 
 class ModificarProducto(SQLModel):
@@ -82,20 +84,18 @@ class ModificarProducto(SQLModel):
 ###########################
 
 
-class CompraBase(SQLModel):
-    total_productos: int = Field(default = 1)
-    usuario_id: int = Field(foreign_key="usuario.id")
-
-
-class Compra(CompraBase, table = True):
+class Compra(SQLModel, table = True):
     id_compra: int | None = Field(default = None, primary_key = True)
+    usuario_id: int = Field(foreign_key="usuario.id")
+    total_productos: int = Field(default = 1)
     usuario: "Usuario" = Relationship(back_populates = "compras")
     producto_link: list[CompraProducto] = Relationship(back_populates = "compra", cascade_delete = True)
 
 
-class CompraPublica(CompraBase):
+class CompraPublica(SQLModel):
     id_compra: int
-    usuario: "UsuarioBase"
+    usuario: "UsuarioPublico"
+    total_productos: int
     productos: list[CompraProductoPublica]
 
 
