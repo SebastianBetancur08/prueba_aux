@@ -30,32 +30,33 @@ def client_fixture(session: Session):
 
 @pytest.fixture(name = "usuario")
 def usuario_fixture(client: TestClient):
-    response = client.post("/usuario/", json=[{
-        "nombre": "pruebas",
-        "email": "prueba@gmail.com",
-        "id": 1034988101,
-        "contraseña": "prueba"
-    }])
-    return response.json()[0]
+    response = client.post("/usuario/",
+                           json={"nombre": "pruebas",
+                                 "email": "prueba@gmail.com",
+                                 "id": 1034988101,
+                                 "contraseña": "prueba"})
+    
+    return response.json()
 
 
 @pytest.fixture(name = "producto")
 def producto_fixture(client: TestClient):
-    response = client.post("/producto/", json=[{
-        "nombre": "producto prueba",
-        "precio": 10000.25,
-        "url_de_imagen": "http//prueba"
-
-    }])
-    return response.json()[0]
+    response = client.post("/producto/",
+                           json={
+                               "nombre": "producto prueba",
+                               "precio": 10000.25,
+                               "url_de_imagen": "http//prueba"})
+    
+    return response.json()
 
 
 @pytest.fixture(name = "compra")
 def compra_fixture(client: TestClient, usuario, producto):
-    response = client.post("/compra/", json={
-        "usuario_id": usuario["id"],
-        "productos": [{"producto_id": producto["id"], "cantidad": 2}]
-    })
+    response = client.post("/compra/",
+                           json={"usuario_id": usuario["id"],
+                                 "productos": [{"producto_id": producto["id"],
+                                                "cantidad": 2}]})
+    
     return response.json()
 
     
@@ -67,22 +68,20 @@ def test_crear_usuario(client: TestClient, usuario):
 
 
 def test_crear_usuario_incompleto(client: TestClient):
-    response = client.post("/usuario/", json=[{
-        "email": "prueba@gmail.com",
-        "contraseña": "prueba"
-    }])
+    response = client.post("/usuario/",
+                           json={"email": "prueba@gmail.com",
+                                 "contraseña": "prueba"})
 
     assert response.status_code == 422
 
 
 def test_crear_usuario_duplicado(client: TestClient, usuario):
 
-    response = client.post("/usuario/", json=[{
-        "nombre": "prueba",
-        "email": "prueba@gmail.com",
-        "id": 1034988101,
-        "contraseña": "prueba"
-    }])
+    response = client.post("/usuario/",
+                           json={"nombre": "prueba",
+                                 "email": "prueba@gmail.com",
+                                 "id": 1034988101,
+                                 "contraseña": "prueba"})
 
     assert response.status_code == 400
 
@@ -143,6 +142,7 @@ def test_obtener_compras_usuario(client: TestClient, usuario, compra):
     assert data[0]["total_productos"] == compra["total_productos"]
     assert data[0]["productos"][0]["producto_id"] == compra["productos"][0]["producto_id"]
     assert data[0]["productos"][0]["cantidad"] == compra["productos"][0]["cantidad"]
+
 
 def test_obtener_compras_usuario_inexistente(client: TestClient):
     response = client.get("/usuario/25")

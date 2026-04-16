@@ -1,16 +1,11 @@
 from sqlmodel import create_engine, Session, SQLModel
-from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parent
-sqlite_url = f"sqlite:///{BASE_DIR}/database.db"
+DATABASE_URL = "postgresql+psycopg://api_user:1234@localhost:5432/database"
 
-connect_args = {"check_same_thread": False}
-engine = create_engine(sqlite_url, echo=True, connect_args=connect_args)
-
+engine = create_engine(DATABASE_URL,echo=False)
 
 def create_db_and_tables():
     SQLModel.metadata.create_all(engine)
-
 
 def get_session():
     with Session(engine) as session:

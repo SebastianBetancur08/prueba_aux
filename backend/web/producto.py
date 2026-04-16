@@ -8,27 +8,23 @@ from backend.db import  get_session
 router = APIRouter(prefix="/producto")
 
 
-@router.post("/", response_model = list[Producto])
-def crear_productos(*,
+@router.post("/", response_model = Producto)
+def crear_producto(*,
      session: Session = Depends(get_session), 
-     productos: list[CrearProducto]
+     producto: CrearProducto
      ):
     
-    db_productos  = []
-    for producto in productos:
-        db_producto = Producto.model_validate(producto)
-        session.add(db_producto)
-        db_productos.append(db_producto)
-
+    db_producto = Producto.model_validate(producto)
+    session.add(db_producto)
+        
     try:
         session.commit()
     except IntegrityError:
         raise HTTPException(status_code = 400, detail = "Uno o mas IDs ya existen en la base de datos")
 
-    for producto in db_productos:
-        session.refresh(producto)
+    session.refresh(db_producto)
 
-    return db_productos
+    return db_producto
 
 
 @router.get("/", response_model = list[Producto])

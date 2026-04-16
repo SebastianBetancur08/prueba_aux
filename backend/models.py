@@ -2,10 +2,9 @@ from sqlmodel import Field, Relationship, SQLModel
 from decimal import Decimal
 
 
-#########################
+#=======================#
 #--------USUARIO--------#
-#########################
-
+#=======================#
 
 
 class Usuario(SQLModel, table = True):
@@ -36,9 +35,9 @@ class ModificarUsuario(SQLModel):
     contraseña: str | None = None
 
 
-##########################
+#========================#
 #----Tabla Intermedia----#
-##########################
+#========================#
 
 
 class CompraProducto(SQLModel, table = True):
@@ -54,9 +53,9 @@ class CompraProductoPublica(SQLModel):
     cantidad: int
 
 
-##########################
+#========================#
 #--------PRODUCTO--------#
-##########################
+#========================#
 
 
 class Producto(SQLModel, table = True):
@@ -79,9 +78,9 @@ class ModificarProducto(SQLModel):
     url_de_imagen: str | None = None
 
 
-###########################
+#=========================#
 #---------COMPRA----------#
-###########################
+#=========================#
 
 
 class Compra(SQLModel, table = True):

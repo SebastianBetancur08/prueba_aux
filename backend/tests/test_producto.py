@@ -30,13 +30,12 @@ def client_fixture(session: Session):
 
 @pytest.fixture(name="producto")
 def producto_fixture(client: TestClient):
-    response = client.post("/producto/", json=[{
-        "nombre": "producto prueba",
-        "precio": 10000.25,
-        "url_de_imagen": "http//prueba"
-
-    }])
-    return response.json()[0]
+    response = client.post("/producto/",
+                           json={"nombre": "producto prueba",
+                                 "precio": 10000.25,
+                                 "url_de_imagen": "http//prueba"})
+    
+    return response.json()
 
 
 def test_crear_prooducto(client: TestClient, producto):
@@ -48,19 +47,18 @@ def test_crear_prooducto(client: TestClient, producto):
 
 
 def test_crear_producto_incompleto(client: TestClient, producto):
-    response = client.post("/producto/", json=[{
-        "url_de_imagen": "http//prueba"}])
+    response = client.post("/producto/", json={
+        "url_de_imagen": "http//prueba"})
 
     assert response.status_code == 422
 
 
 def test_crear_producto_duplicado(client: TestClient, producto):
 
-    response = client.post("/producto/", json=[{
-        "nombre": "producto prueba",
-        "precio": 10000.250,
-        "url_de_imagen": "http//prueba"
-    }])
+    response = client.post("/producto/",
+                           json={"nombre": "producto prueba",
+                                 "precio": 10000.250,
+                                 "url_de_imagen": "http//prueba"})
 
     assert response.status_code == 400
 
@@ -111,10 +109,9 @@ def test_buscar_productos_inexistentes(client: TestClient):
 
 def test_modifcar_producto(client: TestClient, producto):
     response = client.patch(f"/producto/{producto['id']}", 
-                        json = {
-                            "nombre": "hola",
-                            "precio": 300,
-                        })
+                        json = {"nombre": "hola",
+                                "precio": 300,})
+    
     data = response.json()
 
     assert data["nombre"] != producto["nombre"]

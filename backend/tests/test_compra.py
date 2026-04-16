@@ -30,39 +30,35 @@ def client_fixture(session: Session):
 
 @pytest.fixture(name = "usuario")
 def usuario_fixture(client: TestClient):
-    response = client.post("/usuario/", 
-                            json=[{
-                                "nombre": "pruebas",
-                                "email": "prueba@gmail.com",
-                                "id": 1034988101,
-                                "contraseña": "prueba"
-                                }])
-
-    return response.json()[0]
+    response = client.post("/usuario/",
+                           json={"nombre": "pruebas",
+                                 "email": "prueba@gmail.com",
+                                 "id": 1034988101,
+                                 "contraseña": "prueba"})
+    
+    return response.json()
 
 
 @pytest.fixture(name = "producto")
 def producto_fixture(client: TestClient):
-    response = client.post("/producto/", 
-                            json = [{
-                                "nombre": "producto prueba",
-                                "precio": 10000.25,
-                                "url_de_imagen": "http//prueba"
-                                }])
+    response = client.post("/producto/",
+                           json={
+                               "nombre": "producto prueba",
+                               "precio": 10000.25,
+                               "url_de_imagen": "http//prueba"})
     
-    return response.json()[0]
+    return response.json()
 
 
 @pytest.fixture(name = "compra")
 def compra_fixture(client: TestClient, usuario, producto):
-    response = client.post("/compra/", 
-                            json = {
-                                "usuario_id": usuario["id"],
-                                "productos": [{"producto_id": producto["id"], 
-                                               "cantidad": 2
-                                            }]})
-
+    response = client.post("/compra/",
+                           json={"usuario_id": usuario["id"],
+                                 "productos": [{"producto_id": producto["id"],
+                                                "cantidad": 2}]})
+    
     return response.json()
+
 
 
 def test_crear_compra(client: TestClient, compra, usuario, producto):

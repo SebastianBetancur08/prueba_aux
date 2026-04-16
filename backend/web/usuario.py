@@ -7,27 +7,23 @@ from backend.db import  get_session
 router = APIRouter(prefix="/usuario")
 
 
-@router.post("/", response_model = list[UsuarioPublico])
-def crear_usuarios(*,
+@router.post("/", response_model = UsuarioPublico)
+def crear_usuario(*,
      session: Session = Depends(get_session), 
-     usuarios: list[CrearUsuario]
+     usuario: CrearUsuario
      ):
     
-    db_usuarios = []
-    for usuario in usuarios:
-        db_usuario = Usuario.model_validate(usuario)
-        session.add(db_usuario)
-        db_usuarios.append(db_usuario)
-
+    db_usuario = Usuario.model_validate(usuario)
+    session.add(db_usuario)
+    
     try:
         session.commit()
     except IntegrityError:
         raise HTTPException(status_code = 400, detail = "Uno o mas IDs ya existen en la base de datos")
 
-    for usuario in db_usuarios:
-        session.refresh(usuario)
+    session.refresh(db_usuario)
 
-    return db_usuarios
+    return db_usuario
 
 
 @router.get("/", response_model = list[UsuarioPublico])
