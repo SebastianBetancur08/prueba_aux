@@ -87,7 +87,7 @@ def test_crear_usuario_duplicado(client: TestClient, usuario):
     assert response.status_code == 400
 
 
-def test_leer_usuario(client: TestClient, usuario):
+def test_leer_usuarios(client: TestClient, usuario):
     response = client.get("/usuario/")
 
     data = response.json()
@@ -99,7 +99,7 @@ def test_leer_usuario(client: TestClient, usuario):
     assert data[0]["id"] == 1034988101
 
 
-def test_leer_usuario_paginacion(client: TestClient, usuario):
+def test_leer_usuarios_paginacion_correcta(client: TestClient, usuario):
     response = client.get("/usuario/?minimo=0&maximo=1")
 
     data = response.json()
@@ -108,7 +108,7 @@ def test_leer_usuario_paginacion(client: TestClient, usuario):
     assert len(data) <= 1
 
 
-def test_leer_usuario_maximo_invalido(client: TestClient):
+def test_leer_usuarios_maximo_invalido(client: TestClient):
     response = client.get("/usuario/?maximo=200")
 
     assert response.status_code == 422
@@ -125,7 +125,7 @@ def test_buscar_usuarios(client: TestClient, usuario):
     assert data[0]["id"] == 1034988101
 
 
-def test_buscar_usuario_no_existe(client: TestClient):
+def test_buscar_usuarios_inexistente(client: TestClient):
     response = client.get("/usuario/buscar_usuarios/?usuarios_id=25")
 
     assert response.status_code == 404
@@ -144,6 +144,11 @@ def test_obtener_compras_usuario(client: TestClient, usuario, compra):
     assert data[0]["productos"][0]["producto_id"] == compra["productos"][0]["producto_id"]
     assert data[0]["productos"][0]["cantidad"] == compra["productos"][0]["cantidad"]
 
+def test_obtener_compras_usuario_inexistente(client: TestClient):
+    response = client.get("/usuario/25")
+
+    assert response.status_code == 404
+
 
 def test_modifcar_usuario(client: TestClient, usuario):
     response = client.patch(f"/usuario/{usuario['id']}", 
@@ -159,10 +164,18 @@ def test_modifcar_usuario(client: TestClient, usuario):
     assert data["id"] != usuario["id"]
 
 
-def test_modificar_usuario_no_existe(client: TestClient, usuario):
-    response = client.patch("/usuario/40", json = {})
+def test_modificar_usuario_erroneo(client: TestClient, usuario):
+    
+    # Sin cambios
+    response_1 = client.patch(f"/usuario/{usuario["id"]}",
+                              json = {})
+    
+    # Usuario inexistente
+    response_2 = client.patch("/usuario/25",
+                              json = {"nombre": "hola"})
 
-    assert response.status_code == 404
+    assert response_1.status_code == 422
+    assert response_2.status_code == 404
 
 
 def test_elimiar_usuario(client: TestClient, usuario):
@@ -171,7 +184,7 @@ def test_elimiar_usuario(client: TestClient, usuario):
     assert response.status_code == 200
 
 
-def test_elimar_usuario_no_existe(client: TestClient):
+def test_eliminar_usuario_inexistente(client: TestClient):
     response = client.delete("/usuario/25")
 
     assert response.status_code == 404

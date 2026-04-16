@@ -65,7 +65,7 @@ def test_crear_producto_duplicado(client: TestClient, producto):
     assert response.status_code == 400
 
 
-def test_leer_producto(client: TestClient, producto):
+def test_leer_productos(client: TestClient, producto):
     response = client.get("/producto/")
 
     data = response.json()
@@ -77,7 +77,7 @@ def test_leer_producto(client: TestClient, producto):
     assert producto["url_de_imagen"] == "http//prueba"
 
 
-def test_leer_producto_paginacion(client: TestClient, producto):
+def test_leer_productos_paginacion(client: TestClient, producto):
     response = client.get("/producto/?minimo=0&maximo=1")
 
     data = response.json()
@@ -86,7 +86,7 @@ def test_leer_producto_paginacion(client: TestClient, producto):
     assert len(data) <= 1
 
 
-def test_leer_producto_maximo_invalido(client: TestClient):
+def test_leer_productos_maximo_invalido(client: TestClient):
     response = client.get("/producto/?maximo=200")
 
     assert response.status_code == 422
@@ -103,7 +103,7 @@ def test_buscar_productos(client: TestClient, producto):
     assert producto["url_de_imagen"] == "http//prueba"
 
 
-def test_buscar_producto_no_existe(client: TestClient):
+def test_buscar_productos_inexistentes(client: TestClient):
     response = client.get("/producto/buscar_productos/?productos_id=25")
 
     assert response.status_code == 404
@@ -121,11 +121,18 @@ def test_modifcar_producto(client: TestClient, producto):
     assert data["precio"] != producto["precio"]
 
 
-def test_modificar_producto_no_existe(client: TestClient, producto):
-    response = client.patch("/producto/40", json = {})
+def test_modificar_producto_erroneo(client: TestClient, producto):
+    
+    # Sin cambios
+    response_1 = client.patch(f"/producto/{producto["id"]}",
+                              json = {})
+    
+    # Producto inexistente
+    response_2 = client.patch("/producto/25",
+                              json = {"nombre": "hola"})
 
-    assert response.status_code == 404
-
+    assert response_1.status_code == 422
+    assert response_2.status_code == 404
 
 def test_elimiar_producto(client: TestClient, producto):
     response = client.delete(f"/producto/{producto['id']}")
@@ -133,7 +140,7 @@ def test_elimiar_producto(client: TestClient, producto):
     assert response.status_code == 200
 
 
-def test_eliminar_producto_no_existe(client: TestClient):
+def test_eliminar_producto_inexistente(client: TestClient):
     response = client.delete("/producto/25")
 
     assert response.status_code == 404

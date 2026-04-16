@@ -171,9 +171,19 @@ def test_modificar_compra_erronea(client: TestClient, compra, usuario):
                                     "productos": [{"producto_id": 1,
                                                   "cantidad":10
                                                 }]})
+    
+    # Producto repetidos
+    response_4 = client.patch(f"/compra/{compra['id_compra']}", 
+                            json = {"usuario_id": usuario["id"],
+                                    "productos": [{"producto_id": 30,
+                                                  "cantidad":10
+                                                },
+                                                {"producto_id": 30,
+                                                  "cantidad":20
+                                                }]})
 
     # Producto inexistente
-    response_4 = client.patch(f"/compra/{compra['id_compra']}", 
+    response_5 = client.patch(f"/compra/{compra['id_compra']}", 
                             json = {"usuario_id": usuario["id"],
                                     "productos": [{"producto_id": 30,
                                                   "cantidad":10
@@ -182,9 +192,15 @@ def test_modificar_compra_erronea(client: TestClient, compra, usuario):
     assert response_1.status_code == 422
     assert response_2.status_code == 404
     assert response_3.status_code == 404
-    assert response_4.status_code == 404
-    
+    assert response_4.status_code == 400
+    assert response_5.status_code == 404
 
+def test_eliminar_compra(client: TestClient, compra):
+    response = client.delete(f"/compra/{compra["id_compra"]}")
 
-    
+    assert response.status_code == 200
 
+def test_eliminar_compra_inexistente(client: TestClient):
+    response = client.delete("/compra/25")
+
+    assert response.status_code == 404
