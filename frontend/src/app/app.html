@@ -1,5 +1,5 @@
 <h1>Usuarios</h1>
 
-@for (usuario of usuarios; track usuario.id) {
+@for (usuario of usuarios(); track usuario.id) {
   <p>{{usuario.id}} - {{ usuario.nombre }} - {{usuario.email}}</p>
 }

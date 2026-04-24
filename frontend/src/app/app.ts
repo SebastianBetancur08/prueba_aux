@@ -6,18 +6,20 @@ import { UsuarioService } from './services/usuario.service';
   selector: 'app-root',
   imports: [RouterOutlet],
   templateUrl: './app.html',
-  styleUrl: './app.css'
+  styleUrl: './app.css',
+  standalone: true
 })
 export class AppComponent implements OnInit {
   protected readonly title = signal('frontend');
 
-  usuarios:any[] = []
+  usuarios = signal<any[]>([]);
 
   constructor( private usuarioService: UsuarioService){}
 
   ngOnInit(){
     this.usuarioService.obtenerUsuarios().subscribe(data=>{
-      this.usuarios =data;
+      this.usuarios.set(data);
+      console.log('usuarios', data);
     });
   }
   
