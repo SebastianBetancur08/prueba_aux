@@ -22,7 +22,6 @@ class UsuarioPublico(SQLModel):
 
 
 class CrearUsuario(SQLModel):
-    id: int
     nombre: str
     email: str | None = None
     contraseña: str

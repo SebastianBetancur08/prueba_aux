@@ -1,5 +1,36 @@
-<h1>Usuarios</h1>
+<div class="page">
+  <p class="page-title">Gestión de usuarios</p>
 
-@for (usuario of usuarios(); track usuario.id) {
-  <p>{{usuario.id}} - {{ usuario.nombre }} - {{usuario.email}}</p>
-}
+  <div class="card">
+    <p class="card-title">Nuevo usuario</p>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Nombre</label>
+        <input [(ngModel)]="nuevoNombre" type="text" placeholder="Ej: Juan Pérez" />
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input [(ngModel)]="nuevoEmail" type="email" placeholder="juan@email.com" />
+      </div>
+      <div class="form-group" style="grid-column: 1 / -1;">
+        <label>Contraseña</label>
+        <input [(ngModel)]="nuevoPassword" type="password" placeholder="••••••••" />
+      </div>
+    </div>
+    <button class="btn-crear" (click)="crearUsuario()">+ Crear usuario</button>
+  </div>
+
+  <div class="card">
+    <p class="card-title">Usuarios registrados</p>
+    @for (usuario of usuarios(); track usuario.id) {
+      <div class="usuario-row">
+        <div class="avatar">{{ usuario.nombre.slice(0,2).toUpperCase() }}</div>
+        <div class="usuario-info">
+          <div class="usuario-nombre">{{ usuario.nombre }}</div>
+          <div class="usuario-email">{{ usuario.email || '—' }}</div>
+        </div>
+        <span class="usuario-id">#{{ usuario.id }}</span>
+      </div>
+    }
+  </div>
+</div>
