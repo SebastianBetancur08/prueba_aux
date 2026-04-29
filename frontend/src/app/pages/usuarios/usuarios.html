@@ -1,0 +1,27 @@
+<h2>Usuarios</h2>
+<p *ngIf="error" style="color:red">{{ error }}</p>
+
+
+<!-- FORMULARIO CREAR -->
+<input [(ngModel)]="nuevoUsuario.nombre" placeholder="Nombre" />
+<input [(ngModel)]="nuevoUsuario.email" placeholder="Email" />
+<input [(ngModel)]="nuevoUsuario.contrasena" type="password"
+        placeholder="Contrasena" />
+<button (click)="crear()">Crear</button>
+
+
+<!-- LISTA -->
+<div *ngFor="let u of usuarios">
+    <span>{{ u.id }} — {{ u.nombre }} — {{ u.email }}</span>
+    <button (click)="iniciarEdicion(u)">Editar</button>
+    <button (click)="eliminar(u.id)">Eliminar</button>
+</div>
+
+
+<!-- FORMULARIO EDITAR -->
+<div *ngIf="editando">
+    <input [(ngModel)]="cambios.nombre" placeholder="Nuevo nombre" />
+    <input [(ngModel)]="cambios.email" placeholder="Nuevo email" />
+    <button (click)="guardarEdicion()">Guardar</button>
+    <button (click)="editando = null">Cancelar</button>
+</div> 
