@@ -7,24 +7,24 @@ import { Observable } from 'rxjs';
 // ------- TIPOS ----- //
 // =================== //
 
-export interface Producto{
+export interface Producto {
   id: number;
   nombre: string;
   precio: number;
   url_de_imagen: string | null;
 }
 
-export interface CrearProucto{
-  id: number;
+export interface CrearProducto {
   nombre: string;
   precio: number;
   url_de_imagen?: string | null;
 }
 
-export interface ModificarProducto{
-  nombre?: number | null;
-  precio?: string | null;
+export interface ModificarProducto {
+  nombre?: string | null;
+  precio?: number | null;
   url_de_imagen?: string | null;
+}
 
 // =================== //
 // ------ SERVICIO --- //
@@ -35,7 +35,9 @@ export interface ModificarProducto{
 })
 export class ProductoService {
   
-  private apiUrl = 'http://localhost:8000/usuario';
+  private apiUrl = 'http://localhost:8000/producto';
+  
+  constructor(private http: HttpClient) {}
   
   obtenerProductos(minimo: number = 0, maximo: number = 100): Observable<Producto[]> {
     const params = new HttpParams()
@@ -44,20 +46,21 @@ export class ProductoService {
     return this.http.get<Producto[]>(this.apiUrl + '/', { params });
   }
   
-  buscarProductos(ids: number[]): observable<Producto[]> {
+  buscarProductos(ids: number[]): Observable<Producto[]> {
     let params = new HttpParams();
-    ids.forEach(id => params = params.append('producto.id', id));
+    ids.forEach(id => params = params.append('productos_id', id));
     return this.http.get<Producto[]>(this.apiUrl + '/buscar_productos', {params});
   }
   
-  crearProducto(p: CrearProducto): observable<Producto> {
-    return this.http.post<Producto>(this.apiUrl + '/', p)
+  crearProducto(p: CrearProducto): Observable<Producto> {
+    return this.http.post<Producto>(this.apiUrl + '/', p);
   }
   
-  modificarProducto(id: number, cambios: ModificarProducto): observable<producto> {
-    return this.http.patch<Producto>('${this.apiUral}/${id}', cambios);
+  modificarProducto(id: number, cambios: ModificarProducto): Observable<Producto> {
+    return this.http.patch<Producto>(`${this.apiUrl}/${id}`, cambios);
   }
-  eliminarProducto(id: number): observable<{ ok: boolean }> {
-    return this.http.delete<{ ok: boolean }('${this.apiUrl}/${id}');
+
+  eliminarProducto(id: number): Observable<{ ok: boolean }> {
+    return this.http.delete<{ ok: boolean }>(`${this.apiUrl}/${id}`);
   }
 }

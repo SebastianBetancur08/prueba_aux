@@ -177,4 +177,4 @@ def eliminar_compra(*,
     session.delete(db_compra)
     session.commit()
 
-    return {"Ok": True}
+    return {"ok": True}

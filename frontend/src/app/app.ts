@@ -13,39 +13,4 @@ import { FormsModule } from '@angular/forms';
 export class AppComponent implements OnInit {
   protected readonly title = signal('frontend');
 
-  usuarios = signal<any[]>([]);
-  nuevoNombre = "";
-  nuevoEmail = "";
-  nuevoPassword = "";
-
-  constructor( private usuarioService: UsuarioService){}
-
-  ngOnInit(){
-    this.usuarioService.obtenerUsuarios().subscribe(data=>{
-      this.usuarios.set(data);
-      console.log('usuarios', data);
-    });
-  }
-
-  cargarUsuarios() {
-  this.usuarioService.obtenerUsuarios().subscribe(data => {
-    this.usuarios.set(data);
-  });
-}
-  
-  crearUsuario() {
-  const usuario = {
-    nombre: this.nuevoNombre,
-    email: this.nuevoEmail,
-    contraseña: this.nuevoPassword
-  };
-
-  this.usuarioService.crearUsuario(usuario).subscribe(() => {
-    this.cargarUsuarios();
-    this.nuevoNombre = "";
-    this.nuevoEmail = "";
-    this.nuevoPassword = "";
-  });
-}
-
 }

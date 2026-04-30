@@ -31,13 +31,13 @@ export class UsuariosComponent implements OnInit {
     this.svc.obtenerUsuarios().subscribe({
       next: data => this.usuarios = data,
       error: () => this.error = 'Error al cargar usuarios',
-  });
-}
+    });
+  }
 
   crear(): void {
     this.svc.crearUsuario(this.nuevoUsuario).subscribe({
       next: () => { this.nuevoUsuario = { nombre:'', contraseña:'' };
-      this.cargar(); },
+                    this.cargar(); },
       error: () => this.error = 'Error al crear usuario',
     });
   }
