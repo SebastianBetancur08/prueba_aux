@@ -71,9 +71,8 @@ export class UsuarioService {
 
   // Obtener compras de un usuario por su ID
   obtenerComprasUsuario(usuarioId: number): Observable<CompraPublica[]> {
-    return this.http.get<CompraPublica[]>(`${this.apiUrl}/${usuarioId}`);
-  }
-
+  return this.http.get<CompraPublica[]>(`${this.apiUrl}/${usuarioId}`); 
+}
 
   // Crear un usuario
   crearUsuario(usuario: CrearUsuario): Observable<UsuarioPublico> {

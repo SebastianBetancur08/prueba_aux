@@ -1,33 +1,58 @@
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import {
-  UsuarioService, CrearUsuario
+  UsuarioService,
+  CrearUsuario,
 } from '../../../services/usuario.service';
 
 @Component({
   selector: 'app-crear-usuario',
+  standalone: true,
   imports: [FormsModule, CommonModule],
   templateUrl: './crear-usuario.html',
   styleUrl: './crear-usuario.css',
 })
 export class CrearUsuarioComponent {
 
-  nuevoUsuario: CrearUsuario = { nombre:'', contraseña:'' };
+  nuevoUsuario: CrearUsuario = {
+    nombre: '',
+    email: null,
+    contraseña: '',
+  };
+
   error = '';
   exito = '';
+  cargando = false;
 
-  constructor(private svc: UsuarioService) {}
+  constructor(private svc: UsuarioService, private router: Router) {}
 
   crear(): void {
+    // Validación mínima en cliente
+    if (!this.nuevoUsuario.nombre.trim() || !this.nuevoUsuario.contraseña.trim()) {
+      this.error = 'Nombre y contraseña son obligatorios';
+      return;
+    }
+
     this.error = '';
     this.exito = '';
+    this.cargando = true;
+
     this.svc.crearUsuario(this.nuevoUsuario).subscribe({
       next: () => {
         this.exito = 'Usuario creado exitosamente';
-        this.nuevoUsuario = { nombre:'', contraseña:'' };
+        this.cargando = false;
+        this.nuevoUsuario = { nombre: '', email: null, contraseña: '' };
       },
-      error: () => this.error = 'Error al crear usuario',
+      error: () => {
+        this.error = 'Error al crear usuario';
+        this.cargando = false;
+      },
     });
+  }
+
+  irAListar(): void {
+    this.router.navigate(['/usuarios/listar']);
   }
 }

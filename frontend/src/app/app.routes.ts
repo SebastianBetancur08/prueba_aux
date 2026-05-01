@@ -3,6 +3,7 @@ import { Home } from './pages/home/home';
 import { ListarUsuariosComponent } from './pages/usuarios/listar/usuarios';
 import { CrearUsuarioComponent } from './pages/usuarios/crear/crear-usuario';
 import { EditarUsuarioComponent } from './pages/usuarios/editar/editar-usuario';
+import { UsuariosShell } from './pages/usuarios/usuarios-shell/usuarios-shell';
 import { ListarProductosComponent } from './pages/productos/listar/productos';
 import { CrearProductoComponent } from './pages/productos/crear/crear-producto';
 import { EditarProductoComponent } from './pages/productos/editar/editar-producto';
@@ -14,6 +15,7 @@ export const routes: Routes = [
   { path: '', component: Home },
   {
     path: 'usuarios',
+    component: UsuariosShell,
     children: [
       { path: '', component: ListarUsuariosComponent },
       { path: 'listar', component: ListarUsuariosComponent },

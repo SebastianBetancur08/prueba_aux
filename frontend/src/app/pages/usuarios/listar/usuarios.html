@@ -1,1 +1,110 @@
-<p>listar works!</p>
+<div>
+  <!-- BÚSQUEDA POR ID -->
+  <div class="busqueda-container">
+    <h2>Buscar Usuario por ID</h2>
+    <div class="busqueda-input">
+      <input 
+        type="number" 
+        [(ngModel)]="buscarPorId" 
+        placeholder="Ingresa el ID del usuario"
+        (keyup.enter)="buscarPorIdUsuario()"
+      />
+      <button (click)="buscarPorIdUsuario()" [disabled]="buscandoUsuario">
+        {{ buscandoUsuario ? 'Buscando...' : 'Buscar' }}
+      </button>
+      @if (usuarioBuscado) {
+        <button (click)="limpiarBusqueda()">Limpiar</button>
+      }
+    </div>
+
+    <!-- RESULTADO DE BÚSQUEDA -->
+    @if (usuarioBuscado) {
+    <div class="usuario-buscado">
+      <h3>Usuario Encontrado</h3>
+      <div class="usuario-info">
+        <p><strong>ID:</strong> {{ usuarioBuscado.id }}</p>
+        <p><strong>Nombre:</strong> {{ usuarioBuscado.nombre }}</p>
+        <p><strong>Email:</strong> {{ usuarioBuscado.email || 'No disponible' }}</p>
+      </div>
+      <div class="usuario-acciones">
+        <button (click)="verCompras(usuarioBuscado)" class="btn-compras">
+          {{ usuarioSeleccionado?.id === usuarioBuscado.id ? 'Ocultar Compras' : 'Ver Compras' }}
+        </button>
+        <button (click)="eliminar(usuarioBuscado.id)" class="btn-eliminar">Eliminar Usuario</button>
+      </div>
+
+      <!-- COMPRAS DEL USUARIO BUSCADO -->
+      @if (usuarioSeleccionado?.id === usuarioBuscado.id) {
+      <div class="compras-section">
+        <h4>Compras</h4>
+        @if (cargandoCompras) {
+        <div class="cargando">Cargando compras...</div>
+        }
+        @if (!cargandoCompras && compras.length === 0) {
+        <div class="sin-compras">
+          Este usuario no tiene compras
+        </div>
+        }
+        @if (!cargandoCompras && compras.length > 0) {
+        <div class="compras-list">
+          @for (compra of compras; track compra.id_compra) {
+          <div class="compra-item">
+            <p><strong>Compra #{{ compra.id_compra }}</strong></p>
+            <p>Productos: {{ compra.total_productos }}</p>
+            <ul>
+              @for (prod of compra.productos; track prod.producto_id) {
+              <li>
+                Producto {{ prod.producto_id }}: {{ prod.cantidad }} unidades
+              </li>
+              }
+            </ul>
+          </div>
+          }
+        </div>
+        }
+      </div>
+      }
+    </div>
+    }
+  </div>
+
+  <!-- LISTADO DE TODOS LOS USUARIOS -->
+  <div class="usuarios-container">
+    <h2>Todos los Usuarios</h2>
+    @if (error) {
+    <div class="error-message">{{ error }}</div>
+    }
+
+    @if (usuarios.length === 0) {
+    <div class="sin-usuarios">
+      No hay usuarios disponibles
+    </div>
+    }
+
+    @if (usuarios.length > 0) {
+    <table class="usuarios-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Email</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (usuario of usuarios; track usuario.id) {
+        <tr>
+          <td>{{ usuario.id }}</td>
+          <td>{{ usuario.nombre }}</td>
+          <td>{{ usuario.email || 'N/A' }}</td>
+          <td>
+            <button (click)="verCompras(usuario)" class="btn-small">Ver Compras</button>
+            <button (click)="eliminar(usuario.id)" class="btn-small btn-eliminar">Eliminar</button>
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+    }
+  </div>
+</div>
