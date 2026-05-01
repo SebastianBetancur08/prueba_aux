@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import {
-    CompraService, CompraItem, CrearCompra, CompraPublica
+    CompraService, CrearCompra, CompraPublica
 } from '../../../services/compra.service';
 
 @Component({

@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import {
     ProductoService, Producto, ModificarProducto
 } from '../../../services/producto.service';
@@ -22,8 +22,7 @@ export class EditarProductoComponent implements OnInit {
 
   constructor(
     private svc: ProductoService,
-    private route: ActivatedRoute,
-    private router: Router
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
