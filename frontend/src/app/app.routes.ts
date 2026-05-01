@@ -1,10 +1,42 @@
 import { Routes } from '@angular/router';
-import { UsuariosComponent } from './pages/usuarios/usuarios';
-import { ProductosComponent } from './pages/productos/productos';
-import { ComprasComponent } from './pages/compras/compras';
+import { Home } from './pages/home/home';
+import { ListarUsuariosComponent } from './pages/usuarios/listar/usuarios';
+import { CrearUsuarioComponent } from './pages/usuarios/crear/crear-usuario';
+import { EditarUsuarioComponent } from './pages/usuarios/editar/editar-usuario';
+import { ListarProductosComponent } from './pages/productos/listar/productos';
+import { CrearProductoComponent } from './pages/productos/crear/crear-producto';
+import { EditarProductoComponent } from './pages/productos/editar/editar-producto';
+import { ListarComprasComponent } from './pages/compras/listar/compras';
+import { CrearCompraComponent } from './pages/compras/crear/crear-compra';
+import { EditarCompraComponent } from './pages/compras/editar/editar-compra';
+
 export const routes: Routes = [
-    { path: 'usuarios', component: UsuariosComponent },
-    { path: 'productos', component: ProductosComponent },
-    { path: 'compras', component: ComprasComponent },
-    { path: '', redirectTo: 'usuarios', pathMatch: 'full' },
+  { path: '', component: Home },
+  {
+    path: 'usuarios',
+    children: [
+      { path: '', component: ListarUsuariosComponent },
+      { path: 'listar', component: ListarUsuariosComponent },
+      { path: 'crear', component: CrearUsuarioComponent },
+      { path: 'editar/:id', component: EditarUsuarioComponent },
+    ],
+  },
+  {
+    path: 'productos',
+    children: [
+      { path: '', component: ListarProductosComponent },
+      { path: 'listar', component: ListarProductosComponent },
+      { path: 'crear', component: CrearProductoComponent },
+      { path: 'editar/:id', component: EditarProductoComponent },
+    ],
+  },
+  {
+    path: 'compras',
+    children: [
+      { path: '', component: ListarComprasComponent },
+      { path: 'listar', component: ListarComprasComponent },
+      { path: 'crear', component: CrearCompraComponent },
+      { path: 'editar/:id', component: EditarCompraComponent },
+    ],
+  },
 ];
