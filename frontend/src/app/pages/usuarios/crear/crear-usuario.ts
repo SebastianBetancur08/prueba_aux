@@ -19,7 +19,7 @@ export class CrearUsuarioComponent {
   nuevoUsuario: CrearUsuario = {
     nombre: '',
     email: null,
-    contraseña: '',
+    contrasena: '',
   };
 
   error = '';
@@ -29,8 +29,7 @@ export class CrearUsuarioComponent {
   constructor(private svc: UsuarioService, private router: Router) {}
 
   crear(): void {
-    // Validación mínima en cliente
-    if (!this.nuevoUsuario.nombre.trim() || !this.nuevoUsuario.contraseña.trim()) {
+    if (!this.nuevoUsuario.nombre.trim() || !this.nuevoUsuario.contrasena.trim()) {
       this.error = 'Nombre y contraseña son obligatorios';
       return;
     }
@@ -43,7 +42,7 @@ export class CrearUsuarioComponent {
       next: () => {
         this.exito = 'Usuario creado exitosamente';
         this.cargando = false;
-        this.nuevoUsuario = { nombre: '', email: null, contraseña: '' };
+        this.nuevoUsuario = { nombre: '', email: null, contrasena: '' };
       },
       error: () => {
         this.error = 'Error al crear usuario';

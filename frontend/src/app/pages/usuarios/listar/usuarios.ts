@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -22,11 +22,13 @@ export class ListarUsuariosComponent implements OnInit {
   usuarioSeleccionado: UsuarioPublico | null = null;
   cargandoCompras = false;
   error = '';
-  buscarPorId = '';
+  buscarPorId: number | null = null;
   buscandoUsuario = false;
   usuarioBuscado: UsuarioPublico | null = null;
+  mostrarConfirmacion = false;
+  idAEliminar: number | null = null;
 
-  constructor(private svc: UsuarioService) {}
+  constructor(private svc: UsuarioService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     this.cargar();
@@ -41,8 +43,14 @@ export class ListarUsuariosComponent implements OnInit {
   }
 
   buscarPorIdUsuario(): void {
-    if (!this.buscarPorId.trim()) {
+    if (!this.buscarPorId) {
       this.error = 'Por favor ingresa un ID de usuario';
+      return;
+    }
+
+    const id = Number(this.buscarPorId);
+    if (isNaN(id)) {
+      this.error = 'El ID debe ser un número válido';
       return;
     }
 
@@ -52,26 +60,23 @@ export class ListarUsuariosComponent implements OnInit {
     this.compras = [];
     this.usuarioSeleccionado = null;
 
-    const id = parseInt(this.buscarPorId, 10);
-    
     this.svc.buscarUsuarios([id]).subscribe({
       next: (data) => {
+        this.usuarioBuscado = data.length > 0 ? data[0] : null;
+        if (!this.usuarioBuscado) this.error = `No se encontró usuario con ID ${id}`;
         this.buscandoUsuario = false;
-        if (data && data.length > 0) {
-          this.usuarioBuscado = data[0];
-        } else {
-          this.error = `No se encontró usuario con ID ${id}`;
-        }
+        this.cdr.detectChanges();
       },
       error: () => {
-        this.buscandoUsuario = false;
         this.error = `Error al buscar usuario con ID ${id}`;
+        this.buscandoUsuario = false;
+        this.cdr.detectChanges();
       },
     });
   }
 
   limpiarBusqueda(): void {
-    this.buscarPorId = '';
+    this.buscarPorId = null;
     this.usuarioBuscado = null;
     this.compras = [];
     this.usuarioSeleccionado = null;
@@ -79,7 +84,6 @@ export class ListarUsuariosComponent implements OnInit {
   }
 
   verCompras(usuario: UsuarioPublico): void {
-    // Toggle: si ya está abierto, cierra
     if (this.usuarioSeleccionado?.id === usuario.id) {
       this.usuarioSeleccionado = null;
       this.compras = [];
@@ -95,26 +99,45 @@ export class ListarUsuariosComponent implements OnInit {
       next: (data) => {
         this.compras = data;
         this.cargandoCompras = false;
+        this.cdr.detectChanges();
       },
       error: () => {
         this.error = 'Error al cargar compras';
         this.cargandoCompras = false;
+        this.cdr.detectChanges();
       },
     });
   }
-
+  
   eliminar(id: number): void {
-    this.error = '';
-    this.svc.eliminarUsuario(id).subscribe({
-      next: () => {
-        // Si tenía las compras abiertas, las cierra
-        if (this.usuarioSeleccionado?.id === id) {
-          this.usuarioSeleccionado = null;
-          this.compras = [];
-        }
-        this.cargar();
-      },
-      error: () => (this.error = 'Error al eliminar usuario'),
-    });
-  }
+  this.idAEliminar = id;
+  this.mostrarConfirmacion = true;
+}
+
+confirmarEliminar(): void {
+  if (!this.idAEliminar) return;
+  this.mostrarConfirmacion = false;
+  this.error = '';
+  this.svc.eliminarUsuario(this.idAEliminar).subscribe({
+    next: () => {
+      if (this.usuarioSeleccionado?.id === this.idAEliminar) {
+        this.usuarioSeleccionado = null;
+        this.compras = [];
+      }
+      this.usuarioBuscado = null;
+      this.idAEliminar = null;
+      this.cdr.detectChanges();
+    },
+    error: () => {
+      this.error = 'Error al eliminar usuario';
+      this.idAEliminar = null;
+      this.cdr.detectChanges();
+    },
+  });
+}
+
+cancelarEliminar(): void {
+  this.mostrarConfirmacion = false;
+  this.idAEliminar = null;
+}
 }

@@ -7,9 +7,11 @@ import { UsuariosShell } from './pages/usuarios/usuarios-shell/usuarios-shell';
 import { ListarProductosComponent } from './pages/productos/listar/productos';
 import { CrearProductoComponent } from './pages/productos/crear/crear-producto';
 import { EditarProductoComponent } from './pages/productos/editar/editar-producto';
+import { ProductosShell } from './pages/productos/productos-shell/productos-shell';
 import { ListarComprasComponent } from './pages/compras/listar/compras';
 import { CrearCompraComponent } from './pages/compras/crear/crear-compra';
 import { EditarCompraComponent } from './pages/compras/editar/editar-compra';
+import { ComprasShell } from './pages/compras/compras-shell/compras-shell';
 
 export const routes: Routes = [
   { path: '', component: Home },
@@ -25,6 +27,7 @@ export const routes: Routes = [
   },
   {
     path: 'productos',
+    component: ProductosShell,
     children: [
       { path: '', component: ListarProductosComponent },
       { path: 'listar', component: ListarProductosComponent },
@@ -34,6 +37,7 @@ export const routes: Routes = [
   },
   {
     path: 'compras',
+    component: ComprasShell,
     children: [
       { path: '', component: ListarComprasComponent },
       { path: 'listar', component: ListarComprasComponent },

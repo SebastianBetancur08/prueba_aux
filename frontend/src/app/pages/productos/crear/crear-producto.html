@@ -1,1 +1,34 @@
-<p>crear-producto works!</p>
+<div class="pagina">
+  <div class="form-container">
+    <h2>Crear Producto</h2>
+
+    <div class="campo">
+      <label>Nombre <span class="requerido">*</span></label>
+      <input type="text" [(ngModel)]="nuevoProducto.nombre" placeholder="Ingresa el nombre" />
+    </div>
+
+    <div class="campo">
+      <label>Precio <span class="requerido">*</span></label>
+      <input type="number" [(ngModel)]="nuevoProducto.precio" placeholder="Ingresa el precio" />
+    </div>
+
+    <div class="campo">
+      <label>URL de imagen</label>
+      <input type="text" [(ngModel)]="nuevoProducto.url_de_imagen" placeholder="URL de imagen (opcional)" />
+    </div>
+
+    @if (error) {
+      <p class="mensaje error">{{ error }}</p>
+    }
+    @if (exito) {
+      <p class="mensaje exito">{{ exito }}</p>
+    }
+
+    <div class="form-acciones">
+      <button class="btn-primary" (click)="crear()" [disabled]="cargando">
+        {{ cargando ? 'Creando...' : 'Crear producto' }}
+      </button>
+      <button class="btn-secondary" (click)="irAListar()">Volver</button>
+    </div>
+  </div>
+</div>

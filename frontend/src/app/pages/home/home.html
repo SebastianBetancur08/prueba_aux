@@ -1,20 +1,39 @@
-<div class="
-grid
-grid 
-justify-center 
-items-center 
-min-h-screen
-bg-gray-900
-">
-<h1>CRUD</h1>
+<div class="home">
 
-    <div min-h-screen >
+  <div class="hero">
+    <h1>Panel de Administración</h1>
+    <p>Selecciona una sección para comenzar</p>
+  </div>
 
-    <a routerLink="/usuarios"
-       class="bg-gray-800 p-8 rounded text-center hover:bg-gray-700">
-      👤 Usuarios
+  <div class="tarjetas">
+
+    <a routerLink="/usuarios" class="tarjeta">
+      <div class="tarjeta-icono">👤</div>
+      <div class="tarjeta-info">
+        <h2>Usuarios</h2>
+        <p>Buscar, crear y editar usuarios</p>
+      </div>
+      <span class="tarjeta-flecha">→</span>
     </a>
 
-    </div>
+    <a routerLink="/productos" class="tarjeta">
+      <div class="tarjeta-icono">📦</div>
+      <div class="tarjeta-info">
+        <h2>Productos</h2>
+        <p>Gestionar el catálogo de productos</p>
+      </div>
+      <span class="tarjeta-flecha">→</span>
+    </a>
+
+    <a routerLink="/compras" class="tarjeta">
+      <div class="tarjeta-icono">🛒</div>
+      <div class="tarjeta-info">
+        <h2>Compras</h2>
+        <p>Ver y administrar compras</p>
+      </div>
+      <span class="tarjeta-flecha">→</span>
+    </a>
+
+  </div>
 
 </div>

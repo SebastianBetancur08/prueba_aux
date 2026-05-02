@@ -2,11 +2,6 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-
-// =================== //
-// ------- TIPOS ----- //
-// =================== //
-
 export interface UsuarioPublico {
   id: number;
   nombre: string;
@@ -16,13 +11,13 @@ export interface UsuarioPublico {
 export interface CrearUsuario {
   nombre: string;
   email?: string | null;
-  contraseña: string;
+  contrasena: string;
 }
 
 export interface ModificarUsuario {
   nombre?: string | null;
   email?: string | null;
-  contraseña?: string | null;
+  contrasena?: string | null;
 }
 
 export interface CompraProductoPublica {
@@ -37,11 +32,6 @@ export interface CompraPublica {
   productos: CompraProductoPublica[];
 }
 
-
-// =================== //
-// ------ SERVICIO --- //
-// =================== //
-
 @Injectable({
   providedIn: 'root',
 })
@@ -51,8 +41,6 @@ export class UsuarioService {
 
   constructor(private http: HttpClient) {}
 
-
-  // Obtener lista de usuarios (con paginación opcional)
   obtenerUsuarios(minimo: number = 0, maximo: number = 100): Observable<UsuarioPublico[]> {
     const params = new HttpParams()
       .set('minimo', minimo)
@@ -60,33 +48,36 @@ export class UsuarioService {
     return this.http.get<UsuarioPublico[]>(this.apiUrl + '/', { params });
   }
 
-
-  // Buscar usuarios por IDs
   buscarUsuarios(ids: number[]): Observable<UsuarioPublico[]> {
     let params = new HttpParams();
-    ids.forEach(id => params = params.append('usuarios_id', id));
+    ids.forEach(id => params = params.append('usuarios_id', String(id)));
     return this.http.get<UsuarioPublico[]>(this.apiUrl + '/buscar_usuarios/', { params });
   }
 
-
-  // Obtener compras de un usuario por su ID
   obtenerComprasUsuario(usuarioId: number): Observable<CompraPublica[]> {
-  return this.http.get<CompraPublica[]>(`${this.apiUrl}/${usuarioId}`); 
-}
+    return this.http.get<CompraPublica[]>(`${this.apiUrl}/${usuarioId}`);
+  }
 
-  // Crear un usuario
   crearUsuario(usuario: CrearUsuario): Observable<UsuarioPublico> {
-    return this.http.post<UsuarioPublico>(this.apiUrl + '/', usuario);
+    const body = {
+      nombre: usuario.nombre,
+      email: usuario.email,
+      contraseña: usuario.contrasena,
+    };
+    return this.http.post<UsuarioPublico>(this.apiUrl + '/', body);
   }
 
-
-  // Modificar un usuario (solo los campos que se pasen)
   modificarUsuario(usuarioId: number, cambios: ModificarUsuario): Observable<UsuarioPublico> {
-    return this.http.patch<UsuarioPublico>(`${this.apiUrl}/${usuarioId}`, cambios);
+    const body: any = {};
+    if (cambios.nombre !== null && cambios.nombre !== undefined && cambios.nombre !== '') 
+      body.nombre = cambios.nombre;
+    if (cambios.email !== null && cambios.email !== undefined && cambios.email !== '') 
+      body.email = cambios.email;
+    if (cambios.contrasena !== null && cambios.contrasena !== undefined && cambios.contrasena !== '') 
+      body.contraseña = cambios.contrasena;
+    return this.http.patch<UsuarioPublico>(`${this.apiUrl}/${usuarioId}`, body);
   }
 
-
-  // Eliminar un usuario
   eliminarUsuario(usuarioId: number): Observable<{ ok: boolean }> {
     return this.http.delete<{ ok: boolean }>(`${this.apiUrl}/${usuarioId}`);
   }

@@ -1,1 +1,65 @@
-<p>productos works!</p>
+<div class="pagina">
+
+  <div class="busqueda-container">
+    <h2>Buscar Producto por ID</h2>
+    <div class="busqueda-input">
+      <input
+        type="number"
+        [(ngModel)]="buscarPorId"
+        placeholder="Ingresa el ID del producto"
+        (keyup.enter)="buscarPorIdProducto()"
+      />
+      <button (click)="buscarPorIdProducto()" [disabled]="buscandoProducto">
+        {{ buscandoProducto ? 'Buscando...' : 'Buscar' }}
+      </button>
+      @if (productoBuscado) {
+        <button class="btn-limpiar" (click)="limpiarBusqueda()">Limpiar</button>
+      }
+    </div>
+  </div>
+
+  @if (productoBuscado) {
+    <div class="tabla-container">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Precio</th>
+            <th>Imagen</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{{ productoBuscado.id }}</td>
+            <td>{{ productoBuscado.nombre }}</td>
+            <td>{{ productoBuscado.precio }}</td>
+            <td>{{ productoBuscado.url_de_imagen ?? '—' }}</td>
+            <td class="acciones">
+              <a class="btn-editar" [routerLink]="['/productos/editar', productoBuscado.id]">Editar</a>
+              <button class="btn-eliminar" (click)="eliminar(productoBuscado.id)">Eliminar</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if (error) {
+    <p class="error">{{ error }}</p>
+  }
+
+  @if (mostrarConfirmacion) {
+    <div class="overlay">
+      <div class="modal">
+        <p>¿Estás seguro de que deseas eliminar este producto?</p>
+        <div class="modal-acciones">
+          <button class="btn-confirmar" (click)="confirmarEliminar()">Sí, eliminar</button>
+          <button class="btn-cancelar" (click)="cancelarEliminar()">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>
