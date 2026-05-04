@@ -1,1 +1,60 @@
-<p>editar-compra works!</p>
+<div class="pagina">
+
+  @if (!compra) {
+    <div class="form-container">
+      <p class="cargando">Cargando compra...</p>
+      @if (error) {
+        <p class="mensaje error">{{ error }}</p>
+      }
+    </div>
+  }
+
+  @if (compra) {
+    <div class="form-container">
+      <h2>Editar Compra</h2>
+      <p class="subtitulo">Compra #{{ compra.id_compra }} — {{ compra.usuario.nombre }}</p>
+
+      <div class="campo">
+        <label class="checkbox-label">
+          <input type="checkbox" [(ngModel)]="modificarUsuario" />
+          Cambiar usuario
+        </label>
+        @if (modificarUsuario) {
+          <input type="number" [(ngModel)]="nuevoUsuarioId" placeholder="Nuevo ID de usuario" />
+        }
+      </div>
+
+      <div class="campo">
+        <label class="checkbox-label">
+          <input type="checkbox" [(ngModel)]="modificarListaProductos" />
+          Cambiar productos
+        </label>
+        @if (modificarListaProductos) {
+          @for (item of productosModificados; track $index) {
+            <div class="producto-row">
+              <input type="number" [(ngModel)]="item.producto_id" placeholder="ID producto" />
+              <input type="number" [(ngModel)]="item.cantidad" placeholder="Cantidad" min="1" />
+              <button class="btn-quitar" (click)="eliminarItem($index)">✕</button>
+            </div>
+          }
+          <button class="btn-agregar" (click)="agregarItem()">+ Agregar producto</button>
+        }
+      </div>
+
+      @if (error) {
+        <p class="mensaje error">{{ error }}</p>
+      }
+      @if (exito) {
+        <p class="mensaje exito">{{ exito }}</p>
+      }
+
+      <div class="form-acciones">
+        <button class="btn-primary" (click)="modificar()" [disabled]="cargando">
+          {{ cargando ? 'Guardando...' : 'Guardar cambios' }}
+        </button>
+        <button class="btn-secondary" (click)="irAListar()">Volver</button>
+      </div>
+    </div>
+  }
+
+</div>

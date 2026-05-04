@@ -1,1 +1,42 @@
-<p>crear-compra works!</p>
+<div class="pagina">
+  <div class="form-container">
+    <h2>Crear Compra</h2>
+
+    <div class="campo">
+      <label>ID Usuario <span class="requerido">*</span></label>
+      <input type="number" [(ngModel)]="nueva.usuario_id" placeholder="ID del usuario" />
+    </div>
+
+    <div class="campo">
+      <label>Productos <span class="requerido">*</span></label>
+      @for (item of nueva.productos; track $index) {
+        <div class="producto-row">
+          <input type="number" [(ngModel)]="item.producto_id" placeholder="ID producto" />
+          <input type="number" [(ngModel)]="item.cantidad" placeholder="Cantidad" min="1" />
+          <button class="btn-quitar" (click)="eliminarItem($index)">✕</button>
+        </div>
+      }
+      <button class="btn-agregar" (click)="agregarItem()">+ Agregar producto</button>
+    </div>
+
+    @if (error) {
+      <p class="mensaje error">{{ error }}</p>
+    }
+    @if (exito) {
+      <p class="mensaje exito">{{ exito }}</p>
+    }
+
+    @if (compra) {
+      <div class="resultado">
+        <p>Compra #{{ compra.id_compra }} creada para {{ compra.usuario.nombre }}</p>
+      </div>
+    }
+
+    <div class="form-acciones">
+      <button class="btn-primary" (click)="crear()" [disabled]="cargando">
+        {{ cargando ? 'Creando...' : 'Crear compra' }}
+      </button>
+      <button class="btn-secondary" (click)="irAListar()">Volver</button>
+    </div>
+  </div>
+</div>

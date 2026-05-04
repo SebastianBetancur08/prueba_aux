@@ -12,8 +12,11 @@
       <button (click)="buscarPorIdProducto()" [disabled]="buscandoProducto">
         {{ buscandoProducto ? 'Buscando...' : 'Buscar' }}
       </button>
-      @if (productoBuscado) {
-        <button class="btn-limpiar" (click)="limpiarBusqueda()">Limpiar</button>
+      @if (productoBuscado){
+          <button class="btn-limpiar" 
+            (click)="limpiarBusqueda()">
+              Limpiar
+          </button>
       }
     </div>
   </div>
