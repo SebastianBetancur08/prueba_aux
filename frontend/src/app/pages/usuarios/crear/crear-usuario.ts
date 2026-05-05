@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
@@ -26,7 +26,7 @@ export class CrearUsuarioComponent {
   exito = '';
   cargando = false;
 
-  constructor(private svc: UsuarioService, private router: Router) {}
+  constructor(private svc: UsuarioService, private router: Router, private cdr: ChangeDetectorRef) {}
 
   crear(): void {
     if (!this.nuevoUsuario.nombre.trim() || !this.nuevoUsuario.contrasena.trim()) {
@@ -43,10 +43,12 @@ export class CrearUsuarioComponent {
         this.exito = 'Usuario creado exitosamente';
         this.cargando = false;
         this.nuevoUsuario = { nombre: '', email: null, contrasena: '' };
+        this.cdr.detectChanges();
       },
       error: () => {
         this.error = 'Error al crear usuario';
         this.cargando = false;
+        this.cdr.detectChanges();
       },
     });
   }

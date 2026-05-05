@@ -37,7 +37,7 @@ export interface CompraPublica {
 })
 export class UsuarioService {
 
-  private apiUrl = 'http://localhost:8000/usuario';
+  private apiUrl = 'http://localhost:8004/usuario';
 
   constructor(private http: HttpClient) {}
 

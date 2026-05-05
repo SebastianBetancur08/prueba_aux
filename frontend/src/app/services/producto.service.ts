@@ -26,7 +26,7 @@ export interface ModificarProducto {
 })
 export class ProductoService {
 
-  private apiUrl = 'http://localhost:8000/producto';
+  private apiUrl = 'http://localhost:8004/producto';
 
   constructor(private http: HttpClient) {}
 

@@ -43,7 +43,7 @@ export interface CompraPublica {
 })
 export class CompraService {
   
-  private apiUrl = 'http://localhost:8000/compra';
+  private apiUrl = 'http://localhost:8004/compra';
   
   constructor(private http: HttpClient) {}
   
