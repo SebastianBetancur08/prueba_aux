@@ -25,13 +25,11 @@ export default function Usuarios() {
     if (!buscarPorId) { setError('Por favor ingresa un ID de usuario'); return; }
     const id = Number(buscarPorId);
     if (isNaN(id)) { setError('El ID debe ser un número válido'); return; }
-
     setBuscandoUsuario(true);
     setError('');
     setUsuarioBuscado(null);
     setCompras([]);
     setUsuarioSeleccionado(null);
-
     try {
       const data = await buscarUsuarios([id]);
       if (data.length > 0) {
@@ -104,91 +102,94 @@ export default function Usuarios() {
 
   return (
     <div className="pagina">
+      <div className="contenedor">
 
-      <div className="busqueda-container">
-        <h2>Buscar Usuario por ID</h2>
-        <div className="busqueda-input">
-          <input
-            type="number"
-            value={buscarPorId}
-            onChange={e => setBuscarPorId(e.target.value === '' ? '' : Number(e.target.value))}
-            placeholder="Ingresa el ID del usuario"
-            onKeyDown={e => e.key === 'Enter' && buscarPorIdUsuario()}
-          />
-          <button onClick={buscarPorIdUsuario} disabled={buscandoUsuario}>
-            {buscandoUsuario ? 'Buscando...' : 'Buscar'}
-          </button>
-          {usuarioBuscado && (
-            <button className="btn-limpiar" onClick={limpiarBusqueda}>Limpiar</button>
-          )}
+        <div className="busqueda-container">
+          <h2>Buscar Usuario por ID</h2>
+          <div className="busqueda-input">
+            <input
+              type="number"
+              value={buscarPorId}
+              onChange={e => setBuscarPorId(e.target.value === '' ? '' : Number(e.target.value))}
+              placeholder="Ingresa el ID del usuario"
+              onKeyDown={e => e.key === 'Enter' && buscarPorIdUsuario()}
+            />
+            <button onClick={buscarPorIdUsuario} disabled={buscandoUsuario}>
+              {buscandoUsuario ? 'Buscando...' : 'Buscar'}
+            </button>
+            {usuarioBuscado && (
+              <button className="btn-limpiar" onClick={limpiarBusqueda}>Limpiar</button>
+            )}
+          </div>
         </div>
-      </div>
 
-      {usuarioBuscado && (
-        <div className="tabla-container">
-          <table>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Email</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>{usuarioBuscado.id}</td>
-                <td>{usuarioBuscado.nombre}</td>
-                <td>{usuarioBuscado.email ?? '—'}</td>
-                <td className="acciones">
-                  <button className="btn-compras" onClick={() => verCompras(usuarioBuscado)}>
-                    {usuarioSeleccionado?.id === usuarioBuscado.id ? 'Ocultar compras' : 'Ver compras'}
-                  </button>
-                  <Link className="btn-editar" to={`/usuarios/editar/${usuarioBuscado.id}`}>Editar</Link>
-                  <button className="btn-eliminar" onClick={() => eliminar(usuarioBuscado.id)}>Eliminar</button>
-                </td>
-              </tr>
-
-              {usuarioSeleccionado?.id === usuarioBuscado.id && (
-                <tr className="fila-compras">
-                  <td colSpan={4}>
-                    {cargandoCompras && <p>Cargando compras...</p>}
-                    {!cargandoCompras && compras.length === 0 && <p>Este usuario no tiene compras.</p>}
-                    {!cargandoCompras && compras.length > 0 && (
-                      <table className="tabla-compras">
-                        <thead>
-                          <tr>
-                            <th>ID Compra</th>
-                            <th>Total productos</th>
-                            <th>Productos</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {compras.map(compra => (
-                            <tr key={compra.id_compra}>
-                              <td>{compra.id_compra}</td>
-                              <td>{compra.total_productos}</td>
-                              <td>
-                                {compra.productos.map(p => (
-                                  <span key={p.producto_id} className="producto-tag">
-                                    #{p.producto_id} x{p.cantidad}
-                                  </span>
-                                ))}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    )}
+        {usuarioBuscado && (
+          <div className="tabla-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nombre</th>
+                  <th>Email</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>{usuarioBuscado.id}</td>
+                  <td>{usuarioBuscado.nombre}</td>
+                  <td>{usuarioBuscado.email ?? '—'}</td>
+                  <td className="acciones">
+                    <button className="btn-compras" onClick={() => verCompras(usuarioBuscado)}>
+                      {usuarioSeleccionado?.id === usuarioBuscado.id ? 'Ocultar compras' : 'Ver compras'}
+                    </button>
+                    <Link className="btn-editar" to={`/usuarios/editar/${usuarioBuscado.id}`}>Editar</Link>
+                    <button className="btn-eliminar" onClick={() => eliminar(usuarioBuscado.id)}>Eliminar</button>
                   </td>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
 
-      {error && <p className="error">{error}</p>}
+                {usuarioSeleccionado?.id === usuarioBuscado.id && (
+                  <tr className="fila-compras">
+                    <td colSpan={4}>
+                      {cargandoCompras && <p>Cargando compras...</p>}
+                      {!cargandoCompras && compras.length === 0 && <p>Este usuario no tiene compras.</p>}
+                      {!cargandoCompras && compras.length > 0 && (
+                        <table className="tabla-compras">
+                          <thead>
+                            <tr>
+                              <th>ID Compra</th>
+                              <th>Total productos</th>
+                              <th>Productos</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {compras.map(compra => (
+                              <tr key={compra.id_compra}>
+                                <td>{compra.id_compra}</td>
+                                <td>{compra.total_productos}</td>
+                                <td>
+                                  {compra.productos.map(p => (
+                                    <span key={p.producto_id} className="producto-tag">
+                                      #{p.producto_id} x{p.cantidad}
+                                    </span>
+                                  ))}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      )}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {error && <p className="error">{error}</p>}
+
+      </div>
 
       {mostrarConfirmacion && (
         <div className="overlay">
