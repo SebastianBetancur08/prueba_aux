@@ -4,7 +4,7 @@ from sqlmodel import select, Session, delete
 from backend.models import Usuario, Producto, Compra, CompraItem, CrearCompra, CompraProducto, CompraPublica, CompraProductoPublica, ModificarCompra
 from backend.db import  get_session
 
-router = APIRouter(prefix="/compra")
+router = APIRouter(prefix="/compra", tags=["Compra"])
 
 @router.post("/", response_model = CompraPublica)
 def crear_compra(

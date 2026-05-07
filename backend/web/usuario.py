@@ -4,7 +4,7 @@ from sqlmodel import select, Session
 from backend.models import Usuario, UsuarioPublico, CrearUsuario, ModificarUsuario, Compra, CompraPublica
 from backend.db import  get_session
 
-router = APIRouter(prefix="/usuario")
+router = APIRouter(prefix="/usuario", tags=["Usuario"])
 
 
 @router.post("/", response_model = UsuarioPublico)

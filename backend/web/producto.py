@@ -5,7 +5,7 @@ from backend.models import Producto, CrearProducto, ModificarProducto
 from backend.db import  get_session
 
 
-router = APIRouter(prefix="/producto")
+router = APIRouter(prefix="/producto", tags=["Producto"])
 
 
 @router.post("/", response_model = Producto)
