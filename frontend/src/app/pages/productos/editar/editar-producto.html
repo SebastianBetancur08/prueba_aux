@@ -1,0 +1,48 @@
+<div class="pagina">
+
+  @if (!producto) {
+    <div class="form-container">
+      <p class="cargando">Cargando producto...</p>
+      @if (error) {
+        <p class="mensaje error">{{ error }}</p>
+      }
+    </div>
+  }
+
+  @if (producto) {
+    <div class="form-container">
+      <h2>Editar Producto</h2>
+      <p class="subtitulo">Editando: <strong>{{ producto.nombre }}</strong> (ID: {{ producto.id }})</p>
+
+      <div class="campo">
+        <label>Nombre</label>
+        <input type="text" [(ngModel)]="cambios.nombre" placeholder="Nuevo nombre" />
+      </div>
+
+      <div class="campo">
+        <label>Precio</label>
+        <input type="number" [(ngModel)]="cambios.precio" placeholder="Nuevo precio" />
+      </div>
+
+      <div class="campo">
+        <label>URL de imagen</label>
+        <input type="text" [(ngModel)]="cambios.url_de_imagen" placeholder="Nueva URL de imagen" />
+      </div>
+
+      @if (error) {
+        <p class="mensaje error">{{ error }}</p>
+      }
+      @if (exito) {
+        <p class="mensaje exito">{{ exito }}</p>
+      }
+
+      <div class="form-acciones">
+        <button class="btn-primary" (click)="guardarEdicion()" [disabled]="cargando">
+          {{ cargando ? 'Guardando...' : 'Guardar cambios' }}
+        </button>
+        <button class="btn-secondary" (click)="irAListar()">Volver</button>
+      </div>
+    </div>
+  }
+
+</div>

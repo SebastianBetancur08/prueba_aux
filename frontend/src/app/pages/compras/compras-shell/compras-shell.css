@@ -1,0 +1,58 @@
+.shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #0d0d1a;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.barra-superior {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 24px;
+  background-color: #0a0a18;
+  border-bottom: 1px solid #1a1a3a;
+  height: 52px;
+}
+
+.barra-superior a {
+  text-decoration: none;
+  color: #5a6a8a;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: 6px;
+  transition: all 0.2s;
+  letter-spacing: 0.4px;
+}
+
+.barra-superior a:hover {
+  color: #e0e6f0;
+  background-color: #1a1a3a;
+}
+
+.barra-superior a.activo {
+  color: #7eb3ff;
+  background-color: #1a2a4a;
+}
+
+.volver {
+  color: #3a4a6a !important;
+  font-size: 12px !important;
+}
+
+.volver:hover {
+  color: #7eb3ff !important;
+}
+
+.separador {
+  width: 1px;
+  height: 20px;
+  background-color: #1a1a3a;
+  margin: 0 8px;
+}
+
+.contenido {
+  flex: 1;
+}

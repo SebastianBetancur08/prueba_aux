@@ -1,0 +1,69 @@
+<div class="pagina">
+
+  <div class="busqueda-container">
+    <h2>Buscar Compra por ID</h2>
+    <div class="busqueda-input">
+      <input
+        type="number"
+        [(ngModel)]="buscarPorId"
+        placeholder="Ingresa el ID de la compra"
+        (keyup.enter)="buscarPorIdCompra()"
+      />
+      <button (click)="buscarPorIdCompra()" [disabled]="buscandoCompra">
+        {{ buscandoCompra ? 'Buscando...' : 'Buscar' }}
+      </button>
+      @if (compraBuscada) {
+        <button class="btn-limpiar" (click)="limpiarBusqueda()">Limpiar</button>
+      }
+    </div>
+  </div>
+
+  @if (compraBuscada) {
+    <div class="tabla-container">
+      <table>
+        <thead>
+          <tr>
+            <th>ID Compra</th>
+            <th>Usuario</th>
+            <th>Total Productos</th>
+            <th>Productos</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{{ compraBuscada.id_compra }}</td>
+            <td>{{ compraBuscada.usuario.nombre }} (ID: {{ compraBuscada.usuario.id }})</td>
+            <td>{{ compraBuscada.total_productos }}</td>
+            <td>
+              @for (p of compraBuscada.productos; track p.producto_id) {
+                <span class="producto-tag">#{{ p.producto_id }} x{{ p.cantidad }}</span>
+              }
+            </td>
+            <td class="acciones">
+              <a class="btn-editar" [routerLink]="['/compras/editar', compraBuscada.id_compra]">Editar</a>
+              <button class="btn-eliminar" (click)="eliminar(compraBuscada.id_compra)">Eliminar</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if (error) {
+    <p class="error">{{ error }}</p>
+  }
+
+  @if (mostrarConfirmacion) {
+    <div class="overlay">
+      <div class="modal">
+        <p>¿Estás seguro de que deseas eliminar esta compra?</p>
+        <div class="modal-acciones">
+          <button class="btn-confirmar" (click)="confirmarEliminar()">Sí, eliminar</button>
+          <button class="btn-cancelar" (click)="cancelarEliminar()">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

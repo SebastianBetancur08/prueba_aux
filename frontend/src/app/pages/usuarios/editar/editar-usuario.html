@@ -1,0 +1,61 @@
+<div class="pagina">
+
+  @if (!usuario) {
+    <div class="form-container">
+      <p class="cargando">Cargando usuario...</p>
+      @if (error) {
+        <p class="mensaje error">{{ error }}</p>
+      }
+    </div>
+  }
+
+  @if (usuario) {
+    <div class="form-container">
+      <h2>Editar Usuario</h2>
+      <p class="subtitulo">Editando: <strong>{{ usuario.nombre }}</strong> (ID: {{ usuario.id }})</p>
+
+      <div class="campo">
+        <label>Nombre</label>
+        <input
+          type="text"
+          [(ngModel)]="cambios.nombre"
+          placeholder="Nuevo nombre"
+        />
+      </div>
+
+      <div class="campo">
+        <label>Email</label>
+        <input
+          type="email"
+          [(ngModel)]="cambios.email"
+          placeholder="Nuevo email"
+        />
+      </div>
+
+      <div class="campo">
+        <label>Contraseña</label>
+        <input
+          type="password"
+          [(ngModel)]="cambios.contrasena"
+          placeholder="Nueva contraseña (opcional)"
+        />
+      </div>
+
+      @if (error) {
+        <p class="mensaje error">{{ error }}</p>
+      }
+      @if (exito) {
+        <p class="mensaje exito">{{ exito }}</p>
+      }
+
+      <div class="form-acciones">
+        <button class="btn-primary" (click)="guardarEdicion()" [disabled]="cargando">
+          {{ cargando ? 'Guardando...' : 'Guardar cambios' }}
+        </button>
+        <button class="btn-secondary" (click)="irAListar()">Volver</button>
+      </div>
+
+    </div>
+  }
+
+</div>
