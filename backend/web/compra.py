@@ -1,13 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.exc import IntegrityError
-from sqlmodel import select, Session, delete
-from backend.models import Usuario, Producto, Compra, CompraItem, CrearCompra, CompraProducto, CompraPublica, CompraProductoPublica, ModificarCompra
+from sqlmodel import select, Session
+from backend.models import Usuario, Producto, Compra, CompraItem, CrearCompra,  CompraPublica, CompraProductoPublica, ModificarCompra
 from backend.db import  get_session
+from backend.mongo import get_compra_productos_collection
 
 router = APIRouter(prefix="/compra", tags=["compras"])
 
 @router.post("/", response_model = CompraPublica)
-def crear_compra(
+async def crear_compra(
     *,
     session: Session = Depends(get_session),
     compra_data: CrearCompra
@@ -45,14 +46,11 @@ def crear_compra(
     session.add(db_compra)
     session.flush()
 
-    # crear links
-    for item in compra_data.productos:
-        link = CompraProducto(
-            compra_id = db_compra.id_compra,
-            producto_id = item.producto_id,
-            cantidad = item.cantidad
-        )
-        session.add(link)
+    collection = get_compra_productos_collection()
+    docs = [{"compra_id": db_compra.id_compra, "producto_id": item.producto_id, "cantidad": item.cantidad}
+        for item in compra_data.productos]
+    await collection.insert_many(docs)
+
 
     session.commit()
     session.refresh(db_compra)
@@ -62,33 +60,35 @@ def crear_compra(
         id_compra = db_compra.id_compra,
         total_productos = db_compra.total_productos,
         usuario = db_compra.usuario,
-        productos = db_compra.producto_link
+        productos = [CompraProductoPublica(producto_id=d["producto_id"], cantidad=d["cantidad"]) for d in docs]
     )
 
     return compra_final
 
 
 @router.get("/", response_model=list[CompraPublica])
-def historial_compras(
+async def historial_compras(
     *,
     session: Session = Depends(get_session),
     skip: int = Query(default=0, ge=0),
     limit: int = Query(default=50, ge=1, le=200)
 ):
     compras = session.exec(select(Compra).offset(skip).limit(limit)).all()
-    return [
-        CompraPublica(
+    collection = get_compra_productos_collection()
+    resultado = []
+    for c in compras:
+        docs = await collection.find({"compra_id": c.id_compra}).to_list()
+        resultado.append(CompraPublica(
             id_compra=c.id_compra,
             total_productos=c.total_productos,
             usuario=c.usuario,
-            productos=c.producto_link
-        )
-        for c in compras
-    ]
+            productos=[CompraProductoPublica(producto_id=d["producto_id"], cantidad=d["cantidad"]) for d in docs]
+        ))
+    return resultado
 
 
 @router.get("/{id_compra}", response_model = CompraPublica)
-def obtener_compra(*,
+async def obtener_compra(*,
     session: Session = Depends(get_session),
     id_compra: int):
  
@@ -98,18 +98,19 @@ def obtener_compra(*,
         raise HTTPException(status_code = 404, detail = f"Compra {id_compra} not found")
     
     # Crear compra publica
-    compra_final=CompraPublica(
+    docs = await get_compra_productos_collection().find({"compra_id": id_compra}).to_list()
+    compra_final = CompraPublica(
             id_compra = db_compra.id_compra,
             total_productos = db_compra.total_productos,
             usuario = db_compra.usuario,
-            productos = db_compra.producto_link
+            productos = [CompraProductoPublica(producto_id=d["producto_id"], cantidad=d["cantidad"]) for d in docs]
             )
-    
+
     return compra_final
 
 
 @router.patch("/{id_compra}", response_model = CompraPublica)
-def modificar_compra(*,
+async def modificar_compra(*,
     session: Session = Depends(get_session),
     id_compra: int,
     compra_data: ModificarCompra,
@@ -151,17 +152,12 @@ def modificar_compra(*,
         if len(productos) != len(productos_ids):
             raise HTTPException(status_code = 404, detail =  "Uno o más productos no existen")
         
-        # Eliminar links anteriores
-        session.exec(delete(CompraProducto).where(CompraProducto.compra_id == id_compra))
+        collection = get_compra_productos_collection()
+        await collection.delete_many({"compra_id": id_compra})
+        docs = [{"compra_id": id_compra, "producto_id": item.producto_id, "cantidad": item.cantidad}
+                for item in compra_data.productos]
+        await collection.insert_many(docs)
 
-        # Crear nuevos links
-        for item in compra_data.productos:
-            link = CompraProducto(
-                compra_id = id_compra,
-                producto_id = item.producto_id,
-                cantidad = item.cantidad
-                )
-            session.add(link)
         
         # Calcular cantidad de productos
         db_compra.total_productos = sum(item.cantidad for item in compra_data.productos)
@@ -171,18 +167,19 @@ def modificar_compra(*,
     session.commit()
     session.refresh(db_compra)
 
+    docs = await get_compra_productos_collection().find({"compra_id": id_compra}).to_list()
     compra_final = CompraPublica(
             id_compra = db_compra.id_compra,
             total_productos = db_compra.total_productos,
             usuario = db_compra.usuario,
-            productos = db_compra.producto_link
+            productos = [CompraProductoPublica(producto_id=d["producto_id"], cantidad=d["cantidad"]) for d in docs]
             )
 
     return compra_final
 
 
 @router.delete("/{id_compra}")
-def eliminar_compra(*,
+async def eliminar_compra(*,
     session: Session = Depends(get_session),
     id_compra: int
     ):
@@ -191,6 +188,9 @@ def eliminar_compra(*,
     db_compra=session.get(Compra, id_compra)
     if not db_compra:
         raise HTTPException(status_code = 404, detail = f"Compra {id_compra} no existe")
+
+    # Eliminar documentos de Mongo antes de borrar la compra
+    await get_compra_productos_collection().delete_many({"compra_id": id_compra})
 
     # Eliminar compra y guardar cambios
     session.delete(db_compra)

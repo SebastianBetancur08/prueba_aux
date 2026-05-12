@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import select, Session
-from backend.models import Usuario, UsuarioPublico, CrearUsuario, ModificarUsuario, Compra, CompraPublica
-from backend.db import  get_session
+from backend.models import Usuario, UsuarioPublico, CrearUsuario, ModificarUsuario, Compra, CompraPublica, CompraProductoPublica
+from backend.db import get_session
+from backend.mongo import get_compra_productos_collection
 
 router = APIRouter(prefix="/usuario", tags=["usuarios"] )
 
@@ -58,7 +59,7 @@ def buscar_usuarios(*,
 
 
 @router.get("/{usuario_id}", response_model = list[CompraPublica] )
-def obtener_compras_usuario(*,
+async def obtener_compras_usuario(*,
     session: Session = Depends(get_session),
     usuario_id: int
     ):
@@ -67,15 +68,17 @@ def obtener_compras_usuario(*,
     usuario = session.get(Usuario, usuario_id)
     if not usuario:
         raise HTTPException(status_code = 404, detail = f"Usuario {usuario_id} not found")
-    
+
     # Encontrar compras
-    compras=[]
+    collection = get_compra_productos_collection()
+    compras = []
     for compra in usuario.compras:
+        docs = await collection.find({"compra_id": compra.id_compra}).to_list()
         compras.append(CompraPublica(
             total_productos = compra.total_productos,
             id_compra = compra.id_compra,
             usuario = compra.usuario,
-            productos = compra.producto_link
+            productos = [CompraProductoPublica(producto_id=d["producto_id"], cantidad=d["cantidad"]) for d in docs]
         ))
 
     return compras

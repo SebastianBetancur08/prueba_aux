@@ -1,5 +1,6 @@
 from sqlmodel import Field, Relationship, SQLModel
 from decimal import Decimal
+from pydantic import BaseModel
 
 
 #=======================#
@@ -39,12 +40,10 @@ class ModificarUsuario(SQLModel):
 #========================#
 
 
-class CompraProducto(SQLModel, table = True):
-    compra_id: int | None = Field(default= None, foreign_key = "compra.id_compra", primary_key = True)
-    producto_id: int | None = Field(default= None, foreign_key = "producto.id", primary_key = True)
-    compra: "Compra" = Relationship(back_populates = "producto_link")
-    producto: "Producto" = Relationship(back_populates = "compra_link")
-    cantidad: int = Field(default = 1)
+class CompraProducto(BaseModel):
+    compra_id: int
+    producto_id: int
+    cantidad: int = 1
 
 
 class CompraProductoPublica(SQLModel):
@@ -62,8 +61,6 @@ class Producto(SQLModel, table = True):
     nombre: str = Field(index = True, unique = True)
     precio: Decimal = Field(default = 0, max_digits = 10, decimal_places = 3)
     url_de_imagen: str | None = Field(default=None)
-    compra_link: list[CompraProducto] = Relationship(back_populates = "producto", cascade_delete = True)
-
 
 class CrearProducto(SQLModel):
     nombre: str 
@@ -87,7 +84,6 @@ class Compra(SQLModel, table = True):
     usuario_id: int = Field(foreign_key="usuario.id")
     total_productos: int = Field(default = 1)
     usuario: "Usuario" = Relationship(back_populates = "compras")
-    producto_link: list[CompraProducto] = Relationship(back_populates = "compra", cascade_delete = True)
 
 
 class CompraPublica(SQLModel):
