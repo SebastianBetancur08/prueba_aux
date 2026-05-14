@@ -60,17 +60,30 @@ class Producto(SQLModel, table = True):
     id: int | None = Field(default = None, primary_key = True)
     nombre: str = Field(index = True, unique = True)
     precio: Decimal = Field(default = 0, max_digits = 10, decimal_places = 3)
+    stock: int = Field(default= 0)
     url_de_imagen: str | None = Field(default=None)
+
+
+class ProductoPublico(SQLModel):
+    id: int
+    nombre: str
+    precio: Decimal
+    stock: int
+    url_de_imagen: str | None = None
+    estado: str  # "disponible", "bajo", "agotado"
+
 
 class CrearProducto(SQLModel):
     nombre: str 
     precio: Decimal 
+    stock: int | None = None
     url_de_imagen: str | None = None
 
 
 class ModificarProducto(SQLModel):
     nombre: str | None = None
     precio: Decimal | None = None
+    stock: int | None = None
     url_de_imagen: str | None = None
 
 
@@ -106,3 +119,5 @@ class CrearCompra(SQLModel):
 class ModificarCompra(SQLModel):
     usuario_id: int | None = None
     productos: list[CompraItem] | None = None
+
+

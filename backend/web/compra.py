@@ -37,6 +37,15 @@ async def crear_compra(
     if len(productos) != len(productos_ids):
         raise HTTPException(status_code = 404, detail =  "Uno o más productos no existen")
 
+    # validar y descontar stock
+    cantidad_por_producto = {item.producto_id: item.cantidad for item in compra_data.productos}
+    for producto in productos:
+        cantidad = cantidad_por_producto[producto.id]
+        if producto.stock < cantidad:
+            raise HTTPException(status_code=400, detail=f"Stock insuficiente para '{producto.nombre}' (disponible: {producto.stock})")
+        producto.stock -= cantidad
+        session.add(producto)
+
     # crear compra
     db_compra = Compra(
         usuario_id = compra_data.usuario_id,
@@ -138,27 +147,47 @@ async def modificar_compra(*,
     # Actulizar productos en compra si se proporciona
     if compra_data.productos is not None:
 
-        # obtener ids productos
+        # obtener ids productos nuevos
         productos_ids = [item.producto_id for item in compra_data.productos]
-
-        # validar productos en una sola consulta
-        productos = session.exec(
-            select(Producto).where(Producto.id.in_(productos_ids))
-        ).all()
 
         if len(productos_ids) != len(set(productos_ids)):
             raise HTTPException(status_code = 400, detail = "Productos repetidos en la compra")
 
-        if len(productos) != len(productos_ids):
+        # validar productos nuevos en una sola consulta
+        productos_nuevos = session.exec(
+            select(Producto).where(Producto.id.in_(productos_ids))
+        ).all()
+
+        if len(productos_nuevos) != len(productos_ids):
             raise HTTPException(status_code = 404, detail =  "Uno o más productos no existen")
-        
+
         collection = get_compra_productos_collection()
+
+        # restaurar stock de productos anteriores
+        docs_anteriores = await collection.find({"compra_id": id_compra}).to_list()
+        ids_anteriores = [d["producto_id"] for d in docs_anteriores]
+        productos_anteriores = session.exec(
+            select(Producto).where(Producto.id.in_(ids_anteriores))
+        ).all()
+        cantidad_anterior = {d["producto_id"]: d["cantidad"] for d in docs_anteriores}
+        for producto in productos_anteriores:
+            producto.stock += cantidad_anterior[producto.id]
+            session.add(producto)
+
+        # validar y descontar stock nuevo
+        cantidad_nueva = {item.producto_id: item.cantidad for item in compra_data.productos}
+        for producto in productos_nuevos:
+            cantidad = cantidad_nueva[producto.id]
+            if producto.stock < cantidad:
+                raise HTTPException(status_code=400, detail=f"Stock insuficiente para '{producto.nombre}' (disponible: {producto.stock})")
+            producto.stock -= cantidad
+            session.add(producto)
+
         await collection.delete_many({"compra_id": id_compra})
         docs = [{"compra_id": id_compra, "producto_id": item.producto_id, "cantidad": item.cantidad}
                 for item in compra_data.productos]
         await collection.insert_many(docs)
 
-        
         # Calcular cantidad de productos
         db_compra.total_productos = sum(item.cantidad for item in compra_data.productos)
 
