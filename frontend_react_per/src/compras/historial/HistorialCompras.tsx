@@ -42,24 +42,22 @@ export default function HistorialCompras() {
                         <table>
                             <thead>
                                 <tr>
-                                    <th>ID compra</th>
-                                    <th>Usuario ID</th>
-                                    <th>Nombre usuario</th>
+                                    <th>#</th>
+                                    <th>Usuario</th>
                                     <th>Total productos</th>
                                     <th>Productos</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {compras.map(p => (
+                                {compras.map((p, i) => (
                                     <tr key={p.id_compra}>
-                                        <td>{p.id_compra}</td>
-                                        <td>{p.usuario.id}</td>
+                                        <td>{pagina * Limite + i + 1}</td>
                                         <td>{p.usuario.nombre}</td>
                                         <td>{p.total_productos}</td>
                                         <td>
-                                            {p.productos.map(pro => (
+                                            {p.productos.map((pro, j) => (
                                                 <span key={pro.producto_id} className="producto-tag">
-                                                    #{pro.producto_id} x{pro.cantidad}
+                                                    Prod. {j + 1} x{pro.cantidad}
                                                 </span>
                                             ))}
                                         </td>
