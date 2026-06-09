@@ -53,7 +53,7 @@ export default function HistorialCompras() {
                                         <td>
                                             {c.productos.map(pro => (
                                                 <span key={pro.producto_id} className="producto-tag">
-                                                    {pro.nombre} ×{pro.cantidad}
+                                                    {pro.nombre} x{pro.cantidad}
                                                     {pro.precio ? ` ($${Number(pro.precio).toFixed(2)} c/u)` : ''}
                                                 </span>
                                             ))}
