@@ -24,6 +24,8 @@ export interface ModificarCompra {
 
 export interface CompraProductoPublica {
   producto_id: string;              // UUID
+  nombre: string;                   // nombre del producto (enriquecido por el backend)
+  precio: number;                   // precio unitario; llega como string, usar Number(precio)
   cantidad: number;
 }
 

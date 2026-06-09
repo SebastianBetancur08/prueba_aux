@@ -1,3 +1,4 @@
+from decimal import Decimal
 from uuid import UUID
 
 from persistence_kit.contracts.repository import Repository
@@ -8,21 +9,47 @@ from backend_persistence.entities import Producto, Compra, CompraProducto
 from backend_persistence.models import (
     CrearCompra, ModificarCompra, CompraPublica, CompraProductoPublica, UsuarioPublico,
 )
+from backend_persistence.services.producto_service import a_decimal
 
 INCLUDE = ["usuario", "productos"]
 
+# info[producto_id] = (nombre, precio_decimal)
+InfoProd = dict[UUID, tuple[str, Decimal]]
 
-def a_compra_publica(row: dict) -> CompraPublica:
+
+async def _info_productos(productos: Repository, rows: list[dict]) -> InfoProd:
+    ids = {p["producto_id"] for row in rows for p in row["productos"]}
+    info: InfoProd = {}
+    for pid in ids:
+        prod = await productos.get(pid)
+        if prod:
+            info[pid] = (prod.nombre, a_decimal(prod.precio_milesimas))
+        else:
+            info[pid] = ("(producto eliminado)", Decimal("0"))
+    return info
+
+
+def a_compra_publica(row: dict, info: InfoProd) -> CompraPublica:
     u = row["usuario"]
     return CompraPublica(
         id_compra=row["id"],
         total_productos=row["total_productos"],
         usuario=UsuarioPublico(id=u["id"], nombre=u["nombre"], email=u.get("email")),
         productos=[
-            CompraProductoPublica(producto_id=p["producto_id"], cantidad=p["cantidad"])
+            CompraProductoPublica(
+                producto_id=p["producto_id"],
+                nombre=info.get(p["producto_id"], ("?", Decimal("0")))[0],
+                precio=info.get(p["producto_id"], ("?", Decimal("0")))[1],
+                cantidad=p["cantidad"],
+            )
             for p in row["productos"]
         ],
     )
+
+
+async def _publica_una(row: dict, productos: Repository) -> CompraPublica:
+    info = await _info_productos(productos, [row])
+    return a_compra_publica(row, info)
 
 
 async def crear(*, datos: CrearCompra,
@@ -68,19 +95,21 @@ async def crear(*, datos: CrearCompra,
     row = await vista.get_with(compra.id, include=INCLUDE)
     if row is None:
         raise DatabaseException("No se pudo recuperar la compra recién creada")
-    return a_compra_publica(row)
+    return await _publica_una(row, productos)
 
 
-async def obtener(id_compra: UUID, *, vista: ViewRepository) -> CompraPublica:
+async def obtener(id_compra: UUID, *, productos: Repository, vista: ViewRepository) -> CompraPublica:
     row = await vista.get_with(id_compra, include=INCLUDE)
     if not row:
         raise NotFoundException(f"Compra {id_compra} no encontrada")
-    return a_compra_publica(row)
+    return await _publica_una(row, productos)
 
 
-async def historial(*, vista: ViewRepository, offset: int, limit: int) -> list[CompraPublica]:
+async def historial(*, productos: Repository, vista: ViewRepository,
+                    offset: int, limit: int) -> list[CompraPublica]:
     rows = await vista.list_with(include=INCLUDE, offset=offset, limit=limit)
-    return [a_compra_publica(r) for r in rows]
+    info = await _info_productos(productos, rows)
+    return [a_compra_publica(r, info) for r in rows]
 
 
 async def modificar(id_compra: UUID, *, datos: ModificarCompra,
@@ -147,8 +176,8 @@ async def modificar(id_compra: UUID, *, datos: ModificarCompra,
     await compras.update(compra)
     row = await vista.get_with(id_compra, include=INCLUDE)
     if row is None:
-        raise DatabaseException("No se pudo recuperar la compra recién creada")
-    return a_compra_publica(row)
+        raise DatabaseException("No se pudo recuperar la compra modificada")
+    return await _publica_una(row, productos)
 
 
 async def eliminar(id_compra: UUID, *, compras: Repository, join: Repository) -> None:

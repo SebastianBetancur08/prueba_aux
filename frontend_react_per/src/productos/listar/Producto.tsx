@@ -1,58 +1,41 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import {
-  buscarProductos,
-  eliminarProducto,
-  type Producto,
-} from '../../services/producto.service';
+import { obtenerProductos, eliminarProducto, type Producto } from '../../services/producto.service';
 import './Producto.css';
 
 export default function Productos() {
-  const [buscarPorId, setBuscarPorId] = useState('');
-  const [buscando, setBuscando] = useState(false);
-  const [productoBuscado, setProductoBuscado] = useState<Producto | null>(null);
+  const [productos, setProductos] = useState<Producto[]>([]);
+  const [filtro, setFiltro] = useState('');
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState('');
   const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
   const [idAEliminar, setIdAEliminar] = useState<string | null>(null);
-  const [error, setError] = useState('');
 
-  async function buscarPorIdProducto() {
-    const id = buscarPorId.trim();
-    if (!id) { setError('Por favor ingresa un ID de producto'); return; }
-    setBuscando(true);
-    setError('');
-    setProductoBuscado(null);
+  useEffect(() => { cargar(); }, []);
+
+  async function cargar() {
+    setCargando(true); setError('');
     try {
-      const data = await buscarProductos([id]);
-      if (data.length > 0) {
-        setProductoBuscado(data[0]);
-      } else {
-        setError(`No se encontró producto con ID ${id}`);
-      }
+      setProductos(await obtenerProductos(0, 200));
     } catch {
-      setError(`Error al buscar producto con ID ${id}`);
+      setError('Error al cargar productos');
     } finally {
-      setBuscando(false);
+      setCargando(false);
     }
   }
 
-  function limpiarBusqueda() {
-    setBuscarPorId('');
-    setProductoBuscado(null);
-    setError('');
-  }
+  const visibles = productos.filter(p =>
+    p.nombre.toLowerCase().includes(filtro.trim().toLowerCase())
+  );
 
-  function eliminar(id: string) {
-    setIdAEliminar(id);
-    setMostrarConfirmacion(true);
-  }
+  function eliminar(id: string) { setIdAEliminar(id); setMostrarConfirmacion(true); }
 
   async function confirmarEliminar() {
     if (!idAEliminar) return;
     setMostrarConfirmacion(false);
-    setError('');
     try {
       await eliminarProducto(idAEliminar);
-      setProductoBuscado(null);
+      setProductos(prev => prev.filter(p => p.id !== idAEliminar));
     } catch {
       setError('Error al eliminar producto');
     } finally {
@@ -60,68 +43,59 @@ export default function Productos() {
     }
   }
 
-  function cancelarEliminar() {
-    setMostrarConfirmacion(false);
-    setIdAEliminar(null);
-  }
+  function cancelarEliminar() { setMostrarConfirmacion(false); setIdAEliminar(null); }
 
   return (
     <div className="pagina">
       <div className="contenedor">
-
         <div className="busqueda-container">
-          <h2>Buscar Producto por ID</h2>
+          <h2>Productos</h2>
           <div className="busqueda-input">
             <input
               type="text"
-              value={buscarPorId}
-              onChange={e => setBuscarPorId(e.target.value)}
-              placeholder="Ingresa el ID (UUID) del producto"
-              onKeyDown={e => e.key === 'Enter' && buscarPorIdProducto()}
+              value={filtro}
+              onChange={e => setFiltro(e.target.value)}
+              placeholder="Filtrar por nombre..."
             />
-            <button onClick={buscarPorIdProducto} disabled={buscando}>
-              {buscando ? 'Buscando...' : 'Buscar'}
-            </button>
-            {productoBuscado && (
-              <button className="btn-limpiar" onClick={limpiarBusqueda}>Limpiar</button>
-            )}
+            <button onClick={cargar}>Refrescar</button>
           </div>
         </div>
 
-        {productoBuscado && (
+        {cargando && <p className="cargando">Cargando...</p>}
+        {error && <p className="error">{error}</p>}
+
+        {!cargando && (
           <div className="tabla-container">
             <table>
               <thead>
                 <tr>
-                  <th>ID</th>
                   <th>Nombre</th>
                   <th>Precio</th>
-                  <th>Imagen</th>
+                  <th>Stock</th>
+                  <th>Estado</th>
                   <th>Acciones</th>
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>{productoBuscado.id}</td>
-                  <td>{productoBuscado.nombre}</td>
-                  <td>${Number(productoBuscado.precio).toFixed(2)}</td>
-                  <td>
-                    {productoBuscado.url_de_imagen
-                      ? <a href={productoBuscado.url_de_imagen} target="_blank" rel="noreferrer" className="link-imagen">Ver imagen</a>
-                      : '—'}
-                  </td>
-                  <td className="acciones">
-                    <Link className="btn-editar" to={`/productos/editar/${productoBuscado.id}`}>Editar</Link>
-                    <button className="btn-eliminar" onClick={() => eliminar(productoBuscado.id)}>Eliminar</button>
-                  </td>
-                </tr>
+                {visibles.map(p => (
+                  <tr key={p.id}>
+                    <td>{p.nombre}</td>
+                    <td>${Number(p.precio).toFixed(2)}</td>
+                    <td>{p.stock ?? '—'}</td>
+                    <td>{p.estado ?? '—'}</td>
+                    <td className="acciones">
+                      <Link className="btn-editar" to={`/productos/editar/${p.id}`}>Editar</Link>
+                      <button className="btn-eliminar" onClick={() => eliminar(p.id)}>Eliminar</button>
+                    </td>
+                  </tr>
+                ))}
+                {visibles.length === 0 && (
+                  <tr><td colSpan={5} className="vacio">Sin resultados</td></tr>
+                )}
               </tbody>
             </table>
           </div>
         )}
-
-        {error && <p className="error">{error}</p>}
-
       </div>
 
       {mostrarConfirmacion && (
@@ -135,7 +109,6 @@ export default function Productos() {
           </div>
         </div>
       )}
-
     </div>
   );
 }

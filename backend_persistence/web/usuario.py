@@ -47,10 +47,11 @@ async def buscar_usuarios(
 async def obtener_compras_usuario(
     usuario_id: UUID,
     usuarios: Repository = Depends(provide_repo("usuario")),
+    productos: Repository = Depends(provide_repo("producto")),
     vista_compra: ViewRepository = Depends(provide_view_repo("compra")),
 ):
     return await usuario_service.listar_compras(
-        usuario_id, usuarios=usuarios, vista_compra=vista_compra,
+        usuario_id, usuarios=usuarios, productos=productos, vista_compra=vista_compra,
     )
 
 

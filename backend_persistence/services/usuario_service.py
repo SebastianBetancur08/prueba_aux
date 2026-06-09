@@ -6,7 +6,7 @@ from persistence_kit.api.exceptions import NotFoundException, ValidationExceptio
 
 from backend_persistence.entities import Usuario
 from backend_persistence.models import CrearUsuario, ModificarUsuario, UsuarioPublico, CompraPublica
-from backend_persistence.services.compra_service import a_compra_publica
+from backend_persistence.services.compra_service import a_compra_publica, _info_productos
 
 
 def a_publico(u: Usuario) -> UsuarioPublico:
@@ -34,13 +34,15 @@ async def buscar(repo: Repository, ids: list[UUID]) -> list[UsuarioPublico]:
 
 
 async def listar_compras(usuario_id: UUID, *, usuarios: Repository,
+                         productos: Repository,
                          vista_compra: ViewRepository) -> list[CompraPublica]:
     if not await usuarios.get(usuario_id):
         raise NotFoundException(f"Usuario {usuario_id} no encontrado")
     filas = await vista_compra.list_by_fields(
         {"usuario_id": usuario_id}, include=["usuario", "productos"], limit=None,
     )
-    return [a_compra_publica(f) for f in filas]
+    info = await _info_productos(productos, filas)
+    return [a_compra_publica(f, info) for f in filas]
 
 
 async def modificar(repo: Repository, usuario_id: UUID, datos: ModificarUsuario) -> UsuarioPublico:

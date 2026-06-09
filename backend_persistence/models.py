@@ -28,6 +28,8 @@ class ModificarUsuario(BaseModel):
 # --------- TABLA INTERMEDIA ---------
 class CompraProductoPublica(BaseModel):
     producto_id: UUID
+    nombre: str
+    precio: Decimal
     cantidad: int
 
 

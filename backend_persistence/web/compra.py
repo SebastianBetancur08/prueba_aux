@@ -34,19 +34,21 @@ async def crear_compra(
 @handle_service_errors
 async def historial_compras(
     pag: tuple[int, int] = Depends(pagination_params),
+    productos: Repository = Depends(provide_repo("producto")),
     vista: ViewRepository = Depends(provide_view_repo("compra")),
 ):
     offset, limit = pag
-    return await compra_service.historial(vista=vista, offset=offset, limit=limit)
+    return await compra_service.historial(productos=productos, vista=vista, offset=offset, limit=limit)
 
 
 @router.get("/{id_compra}", response_model=CompraPublica)
 @handle_service_errors
 async def obtener_compra(
     id_compra: UUID,
+    productos: Repository = Depends(provide_repo("producto")),
     vista: ViewRepository = Depends(provide_view_repo("compra")),
 ):
-    return await compra_service.obtener(id_compra, vista=vista)
+    return await compra_service.obtener(id_compra, productos=productos, vista=vista)
 
 
 @router.patch("/{id_compra}", response_model=CompraPublica)

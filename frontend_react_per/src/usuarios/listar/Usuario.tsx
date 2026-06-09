@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  buscarUsuarios,
+  obtenerUsuarios,
   obtenerComprasUsuario,
   eliminarUsuario,
   type UsuarioPublico,
@@ -10,62 +10,42 @@ import {
 import './Usuario.css';
 
 export default function Usuarios() {
-
-  const [compras, setCompras] = useState<CompraPublica[]>([]);
-  const [usuarioSeleccionado, setUsuarioSeleccionado] = useState<UsuarioPublico | null>(null);
-  const [cargandoCompras, setCargandoCompras] = useState(false);
+  const [usuarios, setUsuarios] = useState<UsuarioPublico[]>([]);
+  const [filtro, setFiltro] = useState('');
+  const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
   const [exito, setExito] = useState('');
-  const [buscarPorId, setBuscarPorId] = useState('');
-  const [buscandoUsuario, setBuscandoUsuario] = useState(false);
-  const [usuarioBuscado, setUsuarioBuscado] = useState<UsuarioPublico | null>(null);
+
+  const [usuarioSeleccionado, setUsuarioSeleccionado] = useState<UsuarioPublico | null>(null);
+  const [compras, setCompras] = useState<CompraPublica[]>([]);
+  const [cargandoCompras, setCargandoCompras] = useState(false);
+
   const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
-  const [idAEliminar, setIdAEliminar] = useState<string | null>(null);
+  const [aEliminar, setAEliminar] = useState<UsuarioPublico | null>(null);
 
-  async function buscarPorIdUsuario() {
-    const id = buscarPorId.trim();
-    if (!id) { setError('Por favor ingresa un ID de usuario'); return; }
-    setBuscandoUsuario(true);
-    setError('');
-    setUsuarioBuscado(null);
-    setCompras([]);
-    setUsuarioSeleccionado(null);
+  useEffect(() => { cargar(); }, []);
+
+  async function cargar() {
+    setCargando(true); setError('');
     try {
-      const data = await buscarUsuarios([id]);
-      if (data.length > 0) {
-        setUsuarioBuscado(data[0]);
-      } else {
-        setError(`No se encontró usuario con ID ${id}`);
-      }
+      setUsuarios(await obtenerUsuarios(0, 200));
     } catch {
-      setError(`Error al buscar usuario con ID ${id}`);
+      setError('Error al cargar usuarios');
     } finally {
-      setBuscandoUsuario(false);
+      setCargando(false);
     }
   }
 
-  function limpiarBusqueda() {
-    setBuscarPorId('');
-    setUsuarioBuscado(null);
-    setCompras([]);
-    setUsuarioSeleccionado(null);
-    setError('');
-    setExito('');
-  }
+  const visibles = usuarios.filter(u => {
+    const q = filtro.trim().toLowerCase();
+    return u.nombre.toLowerCase().includes(q) || (u.email ?? '').toLowerCase().includes(q);
+  });
 
-  async function verCompras(usuario: UsuarioPublico) {
-    if (usuarioSeleccionado?.id === usuario.id) {
-      setUsuarioSeleccionado(null);
-      setCompras([]);
-      return;
-    }
-    setUsuarioSeleccionado(usuario);
-    setCargandoCompras(true);
-    setCompras([]);
-    setError('');
+  async function verCompras(u: UsuarioPublico) {
+    if (usuarioSeleccionado?.id === u.id) { setUsuarioSeleccionado(null); setCompras([]); return; }
+    setUsuarioSeleccionado(u); setCargandoCompras(true); setCompras([]); setError('');
     try {
-      const data = await obtenerComprasUsuario(usuario.id);
-      setCompras(data);
+      setCompras(await obtenerComprasUsuario(u.id));
     } catch {
       setError('Error al cargar compras');
     } finally {
@@ -73,134 +53,117 @@ export default function Usuarios() {
     }
   }
 
-  function eliminar(id: string) {
-    setIdAEliminar(id);
-    setMostrarConfirmacion(true);
-  }
+  function eliminar(u: UsuarioPublico) { setAEliminar(u); setMostrarConfirmacion(true); }
 
   async function confirmarEliminar() {
-    if (!idAEliminar) return;
-    const nombreEliminado = usuarioBuscado?.nombre;
-    setMostrarConfirmacion(false);
-    setError('');
-    setExito('');
+    if (!aEliminar) return;
+    setMostrarConfirmacion(false); setError(''); setExito('');
     try {
-      await eliminarUsuario(idAEliminar);
-      if (usuarioSeleccionado?.id === idAEliminar) {
-        setUsuarioSeleccionado(null);
-        setCompras([]);
-      }
-      setUsuarioBuscado(null);
-      setBuscarPorId('');
-      setExito(`Usuario "${nombreEliminado}" eliminado correctamente`);
+      await eliminarUsuario(aEliminar.id);
+      setUsuarios(prev => prev.filter(x => x.id !== aEliminar.id));
+      if (usuarioSeleccionado?.id === aEliminar.id) { setUsuarioSeleccionado(null); setCompras([]); }
+      setExito(`Usuario "${aEliminar.nombre}" eliminado correctamente`);
     } catch {
       setError('Error al eliminar usuario');
     } finally {
-      setIdAEliminar(null);
+      setAEliminar(null);
     }
   }
 
-  function cancelarEliminar() {
-    setMostrarConfirmacion(false);
-    setIdAEliminar(null);
-  }
+  function cancelarEliminar() { setMostrarConfirmacion(false); setAEliminar(null); }
 
   return (
     <div className="pagina">
       <div className="contenedor">
-
         <div className="busqueda-container">
-          <h2>Buscar Usuario por ID</h2>
+          <h2>Usuarios</h2>
           <div className="busqueda-input">
             <input
               type="text"
-              value={buscarPorId}
-              onChange={e => setBuscarPorId(e.target.value)}
-              placeholder="Ingresa el ID (UUID) del usuario"
-              onKeyDown={e => e.key === 'Enter' && buscarPorIdUsuario()}
+              value={filtro}
+              onChange={e => setFiltro(e.target.value)}
+              placeholder="Filtrar por nombre o email..."
             />
-            <button onClick={buscarPorIdUsuario} disabled={buscandoUsuario}>
-              {buscandoUsuario ? 'Buscando...' : 'Buscar'}
-            </button>
-            {(usuarioBuscado || error) && (
-              <button className="btn-limpiar" onClick={limpiarBusqueda}>Limpiar</button>
-            )}
+            <button onClick={cargar}>Refrescar</button>
           </div>
         </div>
 
-        {usuarioBuscado && (
+        {cargando && <p className="cargando">Cargando...</p>}
+        {error && <p className="error">{error}</p>}
+        {exito && <p className="exito">{exito}</p>}
+
+        {!cargando && (
           <div className="tabla-container">
             <table>
               <thead>
                 <tr>
-                  <th>ID</th>
                   <th>Nombre</th>
                   <th>Email</th>
                   <th>Acciones</th>
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>{usuarioBuscado.id}</td>
-                  <td>{usuarioBuscado.nombre}</td>
-                  <td>{usuarioBuscado.email ?? '—'}</td>
-                  <td className="acciones">
-                    <button className="btn-compras" onClick={() => verCompras(usuarioBuscado)}>
-                      {usuarioSeleccionado?.id === usuarioBuscado.id ? 'Ocultar compras' : 'Ver compras'}
-                    </button>
-                    <Link className="btn-editar" to={`/usuarios/editar/${usuarioBuscado.id}`}>Editar</Link>
-                    <button className="btn-eliminar" onClick={() => eliminar(usuarioBuscado.id)}>Eliminar</button>
-                  </td>
-                </tr>
+                {visibles.map(u => (
+                  <Fragment key={u.id}>
+                    <tr>
+                      <td>{u.nombre}</td>
+                      <td>{u.email ?? '—'}</td>
+                      <td className="acciones">
+                        <button className="btn-compras" onClick={() => verCompras(u)}>
+                          {usuarioSeleccionado?.id === u.id ? 'Ocultar compras' : 'Ver compras'}
+                        </button>
+                        <Link className="btn-editar" to={`/usuarios/editar/${u.id}`}>Editar</Link>
+                        <button className="btn-eliminar" onClick={() => eliminar(u)}>Eliminar</button>
+                      </td>
+                    </tr>
 
-                {usuarioSeleccionado?.id === usuarioBuscado.id && (
-                  <tr className="fila-compras">
-                    <td colSpan={4}>
-                      {cargandoCompras && <p>Cargando compras...</p>}
-                      {!cargandoCompras && compras.length === 0 && <p>Este usuario no tiene compras.</p>}
-                      {!cargandoCompras && compras.length > 0 && (
-                        <table className="tabla-compras">
-                          <thead>
-                            <tr>
-                              <th>ID Compra</th>
-                              <th>Total productos</th>
-                              <th>Productos</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {compras.map(compra => (
-                              <tr key={compra.id_compra}>
-                                <td>{compra.id_compra}</td>
-                                <td>{compra.total_productos}</td>
-                                <td>
-                                  {compra.productos.map(p => (
-                                    <span key={p.producto_id} className="producto-tag">
-                                      #{p.producto_id} x{p.cantidad}
-                                    </span>
-                                  ))}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      )}
-                    </td>
-                  </tr>
+                    {usuarioSeleccionado?.id === u.id && (
+                      <tr className="fila-compras">
+                        <td colSpan={3}>
+                          {cargandoCompras && <p>Cargando compras...</p>}
+                          {!cargandoCompras && compras.length === 0 && <p>Este usuario no tiene compras.</p>}
+                          {!cargandoCompras && compras.length > 0 && (
+                            <table className="tabla-compras">
+                              <thead>
+                                <tr>
+                                  <th>Total productos</th>
+                                  <th>Productos</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {compras.map(compra => (
+                                  <tr key={compra.id_compra}>
+                                    <td>{compra.total_productos}</td>
+                                    <td>
+                                      {compra.productos.map(p => (
+                                        <span key={p.producto_id} className="producto-tag">
+                                          {p.nombre} ×{p.cantidad}
+                                        </span>
+                                      ))}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          )}
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
+                ))}
+                {visibles.length === 0 && (
+                  <tr><td colSpan={3} className="vacio">Sin resultados</td></tr>
                 )}
               </tbody>
             </table>
           </div>
         )}
-
-        {error && <p className="error">{error}</p>}
-        {exito && <p className="exito">{exito}</p>}
-
       </div>
 
       {mostrarConfirmacion && (
         <div className="overlay">
           <div className="modal">
-            <p>¿Eliminar a <strong>{usuarioBuscado?.nombre}</strong>? Esta acción no se puede deshacer.</p>
+            <p>¿Eliminar a <strong>{aEliminar?.nombre}</strong>? Esta acción no se puede deshacer.</p>
             <div className="modal-acciones">
               <button className="btn-confirmar" onClick={confirmarEliminar}>Sí, eliminar</button>
               <button className="btn-cancelar" onClick={cancelarEliminar}>Cancelar</button>
@@ -208,7 +171,6 @@ export default function Usuarios() {
           </div>
         </div>
       )}
-
     </div>
   );
 }

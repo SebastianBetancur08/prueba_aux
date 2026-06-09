@@ -1,54 +1,42 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import {
-  obtenerCompra,
-  eliminarCompra,
-  type CompraPublica,
-} from '../../services/compra.service';
+import { historialCompras, eliminarCompra, type CompraPublica } from '../../services/compra.service';
 import './Compra.css';
 
 export default function Compras() {
-  const [buscarPorId, setBuscarPorId] = useState('');
-  const [buscando, setBuscando] = useState(false);
-  const [compraBuscada, setCompraBuscada] = useState<CompraPublica | null>(null);
+  const [compras, setCompras] = useState<CompraPublica[]>([]);
+  const [filtro, setFiltro] = useState('');
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState('');
   const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
   const [idAEliminar, setIdAEliminar] = useState<string | null>(null);
-  const [error, setError] = useState('');
 
-  async function buscarPorIdCompra() {
-    const id = buscarPorId.trim();
-    if (!id) { setError('Por favor ingresa un ID de compra'); return; }
-    setBuscando(true);
-    setError('');
-    setCompraBuscada(null);
+  useEffect(() => { cargar(); }, []);
+
+  async function cargar() {
+    setCargando(true); setError('');
     try {
-      const data = await obtenerCompra(id);
-      setCompraBuscada(data);
+      setCompras(await historialCompras(0, 200));
     } catch {
-      setError(`No se encontró compra con ID ${id}`);
+      setError('Error al cargar compras');
     } finally {
-      setBuscando(false);
+      setCargando(false);
     }
   }
 
-  function limpiarBusqueda() {
-    setBuscarPorId('');
-    setCompraBuscada(null);
-    setError('');
-  }
+  const visibles = compras.filter(c => {
+    const q = filtro.trim().toLowerCase();
+    return c.usuario.nombre.toLowerCase().includes(q) || c.id_compra.toLowerCase().includes(q);
+  });
 
-  function eliminar(id: string) {
-    setIdAEliminar(id);
-    setMostrarConfirmacion(true);
-  }
+  function eliminar(id: string) { setIdAEliminar(id); setMostrarConfirmacion(true); }
 
   async function confirmarEliminar() {
     if (!idAEliminar) return;
     setMostrarConfirmacion(false);
-    setError('');
     try {
       await eliminarCompra(idAEliminar);
-      setCompraBuscada(null);
+      setCompras(prev => prev.filter(c => c.id_compra !== idAEliminar));
     } catch {
       setError('Error al eliminar compra');
     } finally {
@@ -56,40 +44,32 @@ export default function Compras() {
     }
   }
 
-  function cancelarEliminar() {
-    setMostrarConfirmacion(false);
-    setIdAEliminar(null);
-  }
+  function cancelarEliminar() { setMostrarConfirmacion(false); setIdAEliminar(null); }
 
   return (
     <div className="pagina">
       <div className="contenedor">
-
         <div className="busqueda-container">
-          <h2>Buscar Compra por ID</h2>
+          <h2>Compras</h2>
           <div className="busqueda-input">
             <input
               type="text"
-              value={buscarPorId}
-              onChange={e => setBuscarPorId(e.target.value)}
-              placeholder="Ingresa el ID (UUID) de la compra"
-              onKeyDown={e => e.key === 'Enter' && buscarPorIdCompra()}
+              value={filtro}
+              onChange={e => setFiltro(e.target.value)}
+              placeholder="Filtrar por usuario o ID..."
             />
-            <button onClick={buscarPorIdCompra} disabled={buscando}>
-              {buscando ? 'Buscando...' : 'Buscar'}
-            </button>
-            {compraBuscada && (
-              <button className="btn-limpiar" onClick={limpiarBusqueda}>Limpiar</button>
-            )}
+            <button onClick={cargar}>Refrescar</button>
           </div>
         </div>
 
-        {compraBuscada && (
+        {cargando && <p className="cargando">Cargando...</p>}
+        {error && <p className="error">{error}</p>}
+
+        {!cargando && (
           <div className="tabla-container">
             <table>
               <thead>
                 <tr>
-                  <th>ID</th>
                   <th>Usuario</th>
                   <th>Total</th>
                   <th>Productos</th>
@@ -97,34 +77,30 @@ export default function Compras() {
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>{compraBuscada.id_compra}</td>
-                  <td>
-                    <div className="usuario-info">
-                      <span className="usuario-nombre">{compraBuscada.usuario.nombre}</span>
-                      <span className="usuario-id">#{compraBuscada.usuario.id}</span>
-                    </div>
-                  </td>
-                  <td>{compraBuscada.total_productos}</td>
-                  <td>
-                    {compraBuscada.productos.map(p => (
-                      <span key={p.producto_id} className="producto-tag">
-                        #{p.producto_id} x{p.cantidad}
-                      </span>
-                    ))}
-                  </td>
-                  <td className="acciones">
-                    <Link className="btn-editar" to={`/compras/editar/${compraBuscada.id_compra}`}>Editar</Link>
-                    <button className="btn-eliminar" onClick={() => eliminar(compraBuscada.id_compra)}>Eliminar</button>
-                  </td>
-                </tr>
+                {visibles.map(c => (
+                  <tr key={c.id_compra}>
+                    <td>{c.usuario.nombre}</td>
+                    <td>{c.total_productos}</td>
+                    <td>
+                      {c.productos.map(p => (
+                        <span key={p.producto_id} className="producto-tag">
+                          {p.nombre} ×{p.cantidad}
+                        </span>
+                      ))}
+                    </td>
+                    <td className="acciones">
+                      <Link className="btn-editar" to={`/compras/editar/${c.id_compra}`}>Editar</Link>
+                      <button className="btn-eliminar" onClick={() => eliminar(c.id_compra)}>Eliminar</button>
+                    </td>
+                  </tr>
+                ))}
+                {visibles.length === 0 && (
+                  <tr><td colSpan={4} className="vacio">Sin resultados</td></tr>
+                )}
               </tbody>
             </table>
           </div>
         )}
-
-        {error && <p className="error">{error}</p>}
-
       </div>
 
       {mostrarConfirmacion && (
@@ -138,7 +114,6 @@ export default function Compras() {
           </div>
         </div>
       )}
-
     </div>
   );
 }

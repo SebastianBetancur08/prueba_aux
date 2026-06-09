@@ -3,23 +3,19 @@ import { historialCompras, type CompraPublica } from '../../services/compra.serv
 import './HistorialCompras.css';
 
 export default function HistorialCompras() {
-
     const [compras, setCompras] = useState<CompraPublica[]>([]);
     const [cargando, setCargando] = useState(true);
     const Limite = 20;
     const [pagina, setPagina] = useState(0);
     const [error, setError] = useState('');
 
-    useEffect(() => {
-        cargarCompras(pagina);
-    }, [pagina]);
+    useEffect(() => { cargarCompras(pagina); }, [pagina]);
 
     async function cargarCompras(paginaActual: number) {
         setCargando(true);
-        const skip = paginaActual * Limite;
+        const offset = paginaActual * Limite;
         try {
-            const data = await historialCompras(skip, Limite);
-            setCompras(data);
+            setCompras(await historialCompras(offset, Limite));
         } catch {
             setError('Error al cargar compras');
         } finally {
@@ -49,15 +45,16 @@ export default function HistorialCompras() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {compras.map((p, i) => (
-                                    <tr key={p.id_compra}>
+                                {compras.map((c, i) => (
+                                    <tr key={c.id_compra}>
                                         <td>{pagina * Limite + i + 1}</td>
-                                        <td>{p.usuario.nombre}</td>
-                                        <td>{p.total_productos}</td>
+                                        <td>{c.usuario.nombre}</td>
+                                        <td>{c.total_productos}</td>
                                         <td>
-                                            {p.productos.map((pro, j) => (
+                                            {c.productos.map(pro => (
                                                 <span key={pro.producto_id} className="producto-tag">
-                                                    Prod. {j + 1} x{pro.cantidad}
+                                                    {pro.nombre} ×{pro.cantidad}
+                                                    {pro.precio ? ` ($${Number(pro.precio).toFixed(2)} c/u)` : ''}
                                                 </span>
                                             ))}
                                         </td>
@@ -66,11 +63,11 @@ export default function HistorialCompras() {
                             </tbody>
                         </table>
                         <div className="paginacion">
-                            <button className="btn-paginacion" onClick={() => setPagina(p => p-1)} disabled={pagina === 0}>
+                            <button className="btn-paginacion" onClick={() => setPagina(p => p - 1)} disabled={pagina === 0}>
                                 ← Anterior
                             </button>
                             <span className="pagina-actual">Página {pagina + 1}</span>
-                            <button className="btn-paginacion" onClick={() => setPagina(p => p+1)} disabled={compras.length < Limite}>
+                            <button className="btn-paginacion" onClick={() => setPagina(p => p + 1)} disabled={compras.length < Limite}>
                                 Siguiente →
                             </button>
                         </div>
