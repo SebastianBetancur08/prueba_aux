@@ -12,18 +12,24 @@ def _configs(*, usuario_db, producto_db, compra_db, join_db) -> None:
         },
     })
     register_entity("producto", {
-        "entity": Producto, "collection": "productos", "database": producto_db,
+        "entity": Producto, 
+        "collection": "productos", 
+        "database": producto_db,
         "unique": {"nombre": "nombre"},
     })
     register_entity("compra", {
-        "entity": Compra, "collection": "compras", "database": compra_db,
+        "entity": Compra, 
+        "collection": "compras", 
+        "database": compra_db,
         "relations": {
             "usuario":   {"local_field": "usuario_id", "target": "usuario", "by": "id"},
             "productos": {"target": "compra_producto", "local_field": "id", "target_field": "compra_id", "many": True},
         },
     })
     register_entity("compra_producto", {
-        "entity": CompraProducto, "collection": "compra_productos", "database": join_db,
+        "entity": CompraProducto, 
+        "collection": "compra_productos", 
+        "database": join_db,
     })
 
 
