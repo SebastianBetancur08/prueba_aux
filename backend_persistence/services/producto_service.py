@@ -8,6 +8,7 @@ from backend_persistence.entities import Producto
 from backend_persistence.models import CrearProducto, ModificarProducto, ProductoPublico
 
 ESCALA = 1000  # 3 decimales (precio * 1000)
+_TRES_DEC = Decimal("0.001")
 
 
 def a_milesimas(precio: Decimal) -> int:
@@ -15,7 +16,7 @@ def a_milesimas(precio: Decimal) -> int:
 
 
 def a_decimal(milesimas: int) -> Decimal:
-    return Decimal(milesimas) / ESCALA
+    return (Decimal(milesimas) / ESCALA).quantize(_TRES_DEC)
 
 
 def calcular_estado(stock: int) -> str:

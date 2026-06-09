@@ -49,4 +49,4 @@ app.add_middleware(
 )
 
 # prefix="" conserva tus rutas /usuario /producto /compra. Usa "/api" si lo prefieres.
-app.include_router(build_api_router("backend.web", prefix=""))
+app.include_router(build_api_router("backend_persistence.web", prefix=""))

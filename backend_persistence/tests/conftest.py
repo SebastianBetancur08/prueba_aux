@@ -27,7 +27,7 @@ def entorno_memoria():
 @pytest.fixture
 def client():
     app = FastAPI()
-    app.include_router(build_api_router("backend.web", prefix=""))
+    app.include_router(build_api_router("backend_persistence.web", prefix=""))
     return TestClient(app)
 
 

@@ -2,7 +2,7 @@ from uuid import UUID
 
 from persistence_kit.contracts.repository import Repository
 from persistence_kit.contracts.view_repository import ViewRepository
-from persistence_kit.api.exceptions import NotFoundException, ValidationException
+from persistence_kit.api.exceptions import NotFoundException, ValidationException, DatabaseException
 
 from backend_persistence.entities import Producto, Compra, CompraProducto
 from backend_persistence.models import (
@@ -65,7 +65,10 @@ async def crear(*, datos: CrearCompra,
             compra_id=compra.id, producto_id=item.producto_id, cantidad=item.cantidad,
         ))
 
-    return a_compra_publica(await vista.get_with(compra.id, include=INCLUDE))
+    row = await vista.get_with(compra.id, include=INCLUDE)
+    if row is None:
+        raise DatabaseException("No se pudo recuperar la compra recién creada")
+    return a_compra_publica(row)
 
 
 async def obtener(id_compra: UUID, *, vista: ViewRepository) -> CompraPublica:
@@ -142,7 +145,10 @@ async def modificar(id_compra: UUID, *, datos: ModificarCompra,
         compra.total_productos = total_nuevo
 
     await compras.update(compra)
-    return a_compra_publica(await vista.get_with(id_compra, include=INCLUDE))
+    row = await vista.get_with(id_compra, include=INCLUDE)
+    if row is None:
+        raise DatabaseException("No se pudo recuperar la compra recién creada")
+    return a_compra_publica(row)
 
 
 async def eliminar(id_compra: UUID, *, compras: Repository, join: Repository) -> None:
