@@ -13,6 +13,7 @@ from persistence_kit.bootstrap.startup import run_startup_bootstrap
 from persistence_kit.repository_factory import set_registry_initializer, get_repo
 from persistence_kit.api.route_loader import build_api_router
 
+import backend_persistence.kit_patch  # noqa: F401  (parche temporal por bug de Mongo en el kit)
 from backend_persistence.persistence import register_defaults
 
 logging.basicConfig(level=logging.INFO)
